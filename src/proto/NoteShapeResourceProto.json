@@ -1,0 +1,69 @@
+{
+  "nested": {
+    "boox": {
+      "nested": {
+        "ResourceProtoList": {
+          "fields": {
+            "proto": {
+              "rule": "repeated",
+              "type": "ResourceProto",
+              "id": 1
+            }
+          }
+        },
+        "ResourceProto": {
+          "fields": {
+            "uniqueId": {
+              "type": "string",
+              "id": 1
+            },
+            "documentId": {
+              "type": "string",
+              "id": 2
+            },
+            "createdAt": {
+              "type": "int64",
+              "id": 3
+            },
+            "updatedAt": {
+              "type": "int64",
+              "id": 4
+            },
+            "title": {
+              "type": "string",
+              "id": 5
+            },
+            "audioDuration": {
+              "type": "int64",
+              "id": 6
+            },
+            "type": {
+              "type": "int32",
+              "id": 7
+            },
+            "relativePath": {
+              "type": "string",
+              "id": 8
+            },
+            "cloudPath": {
+              "type": "string",
+              "id": 9
+            },
+            "extraAttributes": {
+              "type": "string",
+              "id": 10
+            },
+            "revisionId": {
+              "type": "string",
+              "id": 11
+            },
+            "originPath": {
+              "type": "string",
+              "id": 12
+            }
+          }
+        }
+      }
+    }
+  }
+}

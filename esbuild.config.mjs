@@ -17,6 +17,7 @@ const context = await esbuild.context({
 	},
 	entryPoints: ["main.ts"],
 	bundle: true,
+	minify: prod,
 	external: [
 		"obsidian",
 		"electron",
@@ -31,13 +32,17 @@ const context = await esbuild.context({
 		"@lezer/common",
 		"@lezer/highlight",
 		"@lezer/lr",
-		...builtins],
+		...builtins
+	],
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
 	outfile: "main.js",
+	loader: {
+		'.png': 'dataurl'
+	}
 });
 
 if (prod) {

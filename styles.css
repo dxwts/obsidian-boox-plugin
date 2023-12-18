@@ -6,3 +6,157 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+:root {
+  --custom-input-height: 30px;
+}
+
+.workspace-leaf-content .view-content {
+  padding: 0 !important;
+}
+
+.loading {
+  width: 15px;
+  height: 15px;
+  animation-name: boox-loading;
+  animation-duration: 0.75s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes boox-loading {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.lds-dual-ring {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid #fff;
+  border-color: #fff transparent #fff transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.noteContent {
+  position: relative;
+}
+
+.childContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.note-menu {
+  position: absolute;
+  bottom: 30px;
+  right: 20px;
+  z-index: 100;
+  /* background-color: white; */
+  border-radius: 25px;
+}
+
+.note-rightBtnWrap{
+  display: flex;
+  justify-content: end;
+  margin-bottom: 10px;
+}
+
+.note-pageBtnWrap{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.note-global-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  background-color: rgba(255, 255, 255);
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.note-global-btn:hover {
+  background: #f0f8ff ;
+  box-shadow: 0px 7px 20px 0px rgba(0, 0, 0, 0.11);
+}
+
+.note-global-btn img {
+  height: 18px;
+  width: 18px;
+}
+
+.pageBtnWrap-ctx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 15px;
+  padding: 0 10px;
+  width: 75px;
+  height: 40px;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 22px;
+  cursor: pointer;
+}
+
+.pageBtnWrap-input {
+  display: none;
+  width: 100%;
+  padding: 0 !important;
+  margin: 0;
+  text-align: center;
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0px !important;
+  background-color: transparent !important;
+  color: #88a0e5 !important;
+  font-size: 18px !important;
+}
+
+.pageBtnWrap-page-info{
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pageBtnWrap-page-item{
+  height: var(--custom-input-height);
+  line-height: var(--custom-input-height);
+  text-align: center;
+  color: #2a2a2a;
+  font-size: 16px;
+}
+
+.pageBtnWrap-separator{
+  margin: 0 5px;
+}

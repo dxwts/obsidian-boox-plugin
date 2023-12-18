@@ -1,0 +1,133 @@
+{
+  "nested": {
+    "boox": {
+      "nested": {
+        "ShapeInfoProtoList": {
+          "fields": {
+            "proto": {
+              "rule": "repeated",
+              "type": "ShapeInfoProto",
+              "id": 1
+            }
+          }
+        },
+        "ShapeInfoProto": {
+          "fields": {
+            "uniqueId": {
+              "type": "string",
+              "id": 1
+            },
+            "objectId": {
+              "type": "string",
+              "id": 2
+            },
+            "createdAt": {
+              "type": "int64",
+              "id": 3
+            },
+            "updatedAt": {
+              "type": "int64",
+              "id": 4
+            },
+            "subPageUniqueId": {
+              "type": "string",
+              "id": 5
+            },
+            "appId": {
+              "type": "string",
+              "id": 6
+            },
+            "pageOriginWidth": {
+              "type": "int32",
+              "id": 7
+            },
+            "pageOriginHeight": {
+              "type": "int32",
+              "id": 8
+            },
+            "color": {
+              "type": "int32",
+              "id": 9
+            },
+            "paintStyle": {
+              "type": "int32",
+              "id": 10
+            },
+            "createArgs": {
+              "type": "string",
+              "id": 11
+            },
+            "thickness": {
+              "type": "float",
+              "id": 12
+            },
+            "zorder": {
+              "type": "int32",
+              "id": 13
+            },
+            "boundingRect": {
+              "type": "string",
+              "id": 14
+            },
+            "shapeType": {
+              "type": "int32",
+              "id": 15
+            },
+            "extraAttributes": {
+              "type": "string",
+              "id": 16
+            },
+            "bookPosition": {
+              "type": "int32",
+              "id": 17
+            },
+            "anchor": {
+              "type": "string",
+              "id": 18
+            },
+            "scribbleType": {
+              "type": "int32",
+              "id": 19
+            },
+            "matrixValues": {
+              "type": "string",
+              "id": 20
+            },
+            "textStyle": {
+              "type": "string",
+              "id": 21
+            },
+            "text": {
+              "type": "string",
+              "id": 22
+            },
+            "position": {
+              "type": "string",
+              "id": 23
+            },
+            "lineStyle": {
+              "type": "string",
+              "id": 24
+            },
+            "revisionId": {
+              "type": "string",
+              "id": 25
+            },
+            "resource": {
+              "type": "string",
+              "id": 26
+            },
+            "status": {
+              "type": "int32",
+              "id": 27
+            },
+            "infoRevisionId": {
+              "type": "string",
+              "id": 28
+            }
+          }
+        }
+      }
+    }
+  }
+}

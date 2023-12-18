@@ -1,0 +1,113 @@
+{
+  "nested": {
+    "boox": {
+      "nested": {
+        "ShapeInfoProtoList": {
+          "fields": {
+            "proto": {
+              "rule": "repeated",
+              "type": "ShapeInfoProto",
+              "id": 1
+            }
+          }
+        },
+        "ShapeInfoProto": {
+          "fields": {
+            "uniqueId": {
+              "type": "string",
+              "id": 1
+            },
+            "createdAt": {
+              "type": "int64",
+              "id": 2
+            },
+            "updatedAt": {
+              "type": "int64",
+              "id": 3
+            },
+            "color": {
+              "type": "int32",
+              "id": 4
+            },
+            "thickness": {
+              "type": "float",
+              "id": 5
+            },
+            "zorder": {
+              "type": "int32",
+              "id": 6
+            },
+            "boundingRect": {
+              "type": "string",
+              "id": 7
+            },
+            "matrixValues": {
+              "type": "string",
+              "id": 8
+            },
+            "textStyle": {
+              "type": "string",
+              "id": 9
+            },
+            "text": {
+              "type": "string",
+              "id": 10
+            },
+            "createArgs": {
+              "type": "string",
+              "id": 11
+            },
+            "shapeType": {
+              "type": "int32",
+              "id": 12
+            },
+            "groupId": {
+              "type": "string",
+              "id": 13
+            },
+            "resource": {
+              "type": "string",
+              "id": 14
+            },
+            "shapeStatus": {
+              "type": "int32",
+              "id": 15
+            },
+            "revisionId": {
+              "type": "string",
+              "id": 16
+            },
+            "lineStyle": {
+              "type": "string",
+              "id": 17
+            },
+            "infoRevisionId": {
+              "type": "string",
+              "id": 18
+            },
+            "tagIdList": {
+              "type": "string",
+              "id": 19
+            },
+            "extra": {
+              "type": "string",
+              "id": 20
+            },
+            "linkIdList": {
+              "type": "string",
+              "id": 21
+            },
+            "richText": {
+              "type": "string",
+              "id": 22
+            },
+            "fillColor": {
+              "type": "int32",
+              "id": 23
+            }
+          }
+        }
+      }
+    }
+  }
+}

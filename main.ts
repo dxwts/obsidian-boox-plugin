@@ -1,134 +1,196 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { BooxSettingTab } from "src/boox-setting-tab";
+import { Notice, Plugin, addIcon, TFolder, TFile } from "obsidian";
+
+import { Boox } from "src/boox";
+import { BooxNoteView, BOOX_NOTE_VIEW_TYPE } from "src/boox-note-view";
+import { BooxTextView, BOOX_TEXT_VIEW_TYPE } from "src/boox-text-view";
+import Api from "src/api";
+import OssUtil from "src/oss-util";
+import { BASE_DIR, DATA_DIR, ICON_LOGO } from "src/constants";
+
+import loading from 'src/assets/images/loading.png'
+import idb from "src/idb";
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
+interface BooxPluginSettings {
+	accessToken: string;
+	uid: string;
+	token: string;
+	syncToken: string;
+	server: string;
+	syncEnabled: boolean;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+const DEFAULT_SETTINGS: BooxPluginSettings = {
+	accessToken: "",
+	uid: "",
+	token: "",
+	syncToken: "",
+	server: "https://send2boox.com",
+	syncEnabled: false,
+};
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
-
+export default class BooxPlugin extends Plugin {
+	settings: BooxPluginSettings;
+	boox: Boox;
+	loadingEl: any;
+	intervalTask: number;
+	async onunload() {
+		this.removeLoading()
+	}
 	async onload() {
+		this.app.workspace.onLayoutReady(async () => {
+			await this.initDataDir()
+			if (this.settings?.syncEnabled) {
+				this.setIntervalTask();
+			}
+		});
+
+		addIcon("boox", ICON_LOGO);
 		await this.loadSettings();
 
+		Api.getInstance(this).setInterceptor(this);
+		this.boox = new Boox(this.app, this);
+		OssUtil.getInstance(this).init();
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		const ribbonIconEl = this.addRibbonIcon(
+			"boox",
+			"BOOX",
+			(evt: MouseEvent) => {
+				
+				// Called when the user clicks the icon.
+				if (this.settings.token) {
+					this.boox.doAction("checkNoteTreeCreated", "");
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
+					return new Notice("用户已登录", 3000);
+				}
+				this.boox.getUserInfo().then((userInfo) => {
+					console.log("userInfo: ", userInfo);
+					if (userInfo) {
+						this.settings.uid = userInfo.uid;
+						this.settings.token = userInfo.token;
+						this.settings.syncToken = userInfo.syncToken;
+						this.saveSettings();
 					}
+				});
+			}
+		);
+		ribbonIconEl.addClass("boox-plugin-ribbon-class");
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
+		this.addSettingTab(new BooxSettingTab(this.app, this));
+
+		this.registerView(BOOX_NOTE_VIEW_TYPE, (leaf) => {
+			return new BooxNoteView(leaf, this);
+		});
+		this.registerExtensions(["boox"], BOOX_NOTE_VIEW_TYPE);
+
+		this.registerView(BOOX_TEXT_VIEW_TYPE, (leaf) => {
+			return new BooxTextView(leaf, this);
+		});
+		this.registerExtensions(["toox"], BOOX_TEXT_VIEW_TYPE);
+
+		this.boox.subject.subscribe(async (obj: any) => {
+			const {action, data} = obj;
+			if (action === 'syncState') {
+				if(this.loadingEl){
+					this.loadingEl.style.display = data === 'CHANGED' ? 'block' : 'none'
+				}
+			}else if(action === 'syncEnabled') {
+				if(data) {
+					await this.initDataDir()
+					this.setIntervalTask() 
+				}else {
+					this.clearIntervals()
 				}
 			}
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		const lastOpenedFilePath = localStorage.getItem("lastOpenedFile");
+		if (lastOpenedFilePath) {
+			const file = this.app.vault.getAbstractFileByPath(lastOpenedFilePath);
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+			if (file instanceof TFile) {
+				this.app.workspace.getLeaf().openFile(file);
+			}
+		}
+		this.vaultOnEvent()
 	}
 
-	onunload() {
-
+	async initDataDir() {
+		await this.setDataDir()
+		setTimeout(() => {
+			this.createLoading()
+		}, 500);
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
-}
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
+	async vaultOnEvent () {
+		this.app.vault.on('delete', async (file) => {
+			if(file.path === 'BOOX') {
+				this.removeLoading()
+				await idb.deleteSettings(this.settings.uid, 'last_seq');
+			}
+		})
 	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
+	async setDataDir() {
+		const dataDir = `${BASE_DIR}/${DATA_DIR}`;
+		const workspace = this.app.vault.getAbstractFileByPath(BASE_DIR)
+
+		if (!workspace || !(workspace instanceof TFolder)) {
+			await this.app.vault.createFolder(dataDir);
+		}
 	}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+	async createLoading() {
+		if(this.loadingEl) return;
+		const selector = '.nav-files-container .nav-folder .tree-item-children .nav-folder div[data-path=BOOX]';
+		const fileExplorer = this.app.workspace.containerEl.querySelector(selector) as HTMLElement;
+		this.loadingEl = document.createElement('img');
+
+		this.loadingEl.src = loading;
+		this.loadingEl.width = 15;
+		this.loadingEl.height = 15;
+		this.loadingEl.addClass('loading')
+		this.loadingEl.style.display = 'none';
+		if (fileExplorer) {
+			fileExplorer.style.justifyContent = 'space-between';
+			fileExplorer.style.alignItems = 'center';
+			fileExplorer.appendChild(this.loadingEl);
+		}		
 	}
-}
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
+	async removeLoading() {
+		const selector = '.nav-files-container .nav-folder .tree-item-children .nav-folder div[data-path=BOOX]';
+		const fileExplorer = this.app.workspace.containerEl.querySelector(selector) as HTMLElement;
+		if (fileExplorer && fileExplorer.contains(this.loadingEl)) {
+			fileExplorer.removeChild(this.loadingEl);
+		}
+		this.loadingEl = null;
 	}
 
-	display(): void {
-		const {containerEl} = this;
+	setIntervalTask() {
+		this.registerInterval(
+			this.intervalTask = window.setInterval(async () => {
+				console.log('---------------setIntervalTask----------------')
+				await this.boox.doAction("getChanges", "");
+			}, 5 * 1000)
+		);
+	}
 
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+	clearIntervals() {
+		window.clearInterval(this.intervalTask);
 	}
 }
