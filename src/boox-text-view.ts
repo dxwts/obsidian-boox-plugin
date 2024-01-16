@@ -95,7 +95,7 @@ export class BooxTextView extends TextFileView {
 
 	async setIframe() {
 		const iframe = document.createElement("iframe");
-		
+
 		const pluginDir = this.plugin.app.vault.adapter.basePath;
 
 		if (!pluginDir) {
@@ -171,9 +171,9 @@ export class BooxTextView extends TextFileView {
 	async loadData(note: any) {
 		try {
 			this.hideLoading();
-			this.contentEl.innerHTML = "";
+			this.contentEl.empty();
 			this.pageId = note.richTextPageNameList?.pageNameList[0] || null;
-			if(!this.pageId) {
+			if (!this.pageId) {
 				return;
 			}
 			this.setIframe();
@@ -182,22 +182,22 @@ export class BooxTextView extends TextFileView {
 			await this.syncNoteData(note);
 			this.note.shapes = await this.loadShapes();
 			await this.renderPage(this.pageId);
-			this.tiptap.setOnyxImgEditable(false)
+			this.tiptap.setOnyxImgEditable(false);
 
 			setTimeout(() => {
 				this.hideLoading();
 			}, 500);
 		} catch (error) {
-			this.contentEl.innerHTML = "";
+			this.contentEl.empty();
 			this.hideLoading();
 		}
 	}
 
 	async loadShapes() {
 		try {
-			const db:any = await idb.getShapeDB(this.shapeDbName);
+			const db: any = await idb.getShapeDB(this.shapeDbName);
 			const shapes = await db.shape.toArray();
-			return shapes || []
+			return shapes || [];
 		} catch (error) {
 			console.log(error);
 		}
@@ -421,16 +421,21 @@ export class BooxTextView extends TextFileView {
 	}
 
 	async deleteNoteLocalDatabase() {
-		await idb.deleteDB(this.shapeDbName)
-		await idb.deleteDB(this.shapeDataDbName)
-		await idb.deleteDB(`${this.shapeDbName}_resource`)
-		await idb.deleteDB(`_tmp_${this.shapeDbName}`)
-		await idb.deleteDB(`_tmp_${this.shapeDataDbName}`)
+		await idb.deleteDB(this.shapeDbName);
+		await idb.deleteDB(this.shapeDataDbName);
+		await idb.deleteDB(`${this.shapeDbName}_resource`);
+		await idb.deleteDB(`_tmp_${this.shapeDbName}`);
+		await idb.deleteDB(`_tmp_${this.shapeDataDbName}`);
 
-		const db:any = idb.getPBFileDB()
-		const records = await db.resource.where('documentUniqueId').equals(this.note.uniqueId).toArray()
-		const deletes = records.map((record: any) => db.resource.delete(record.id))
-		await Promise.all(deletes)
+		const db: any = idb.getPBFileDB();
+		const records = await db.resource
+			.where("documentUniqueId")
+			.equals(this.note.uniqueId)
+			.toArray();
+		const deletes = records.map((record: any) =>
+			db.resource.delete(record.id)
+		);
+		await Promise.all(deletes);
 	}
 
 	showLoading() {
@@ -443,7 +448,7 @@ export class BooxTextView extends TextFileView {
 		this.loadingEl.style.display = "flex";
 		this.loadingEl.style.justifyContent = "center";
 		this.loadingEl.style.alignItems = "center";
-		this.loadingEl.innerHTML = `<div class="lds-dual-ring"></div>`;
+		this.loadingEl.createEl("div", { cls: "lds-dual-ring" });
 		this.containerEl.appendChild(this.loadingEl);
 
 		// setTimeout(() => {
@@ -457,32 +462,33 @@ export class BooxTextView extends TextFileView {
 	}
 
 	createMenuBtn() {
-		
 		const menu = document.createElement("div");
 		menu.className = "note-menu";
 
-		const rightBtnWrap = this.createRightBtn()
+		const rightBtnWrap = this.createRightBtn();
 
-		menu.appendChild(rightBtnWrap)
+		menu.appendChild(rightBtnWrap);
 
 		this.containerEl.appendChild(menu);
 	}
 
 	createRightBtn() {
-		const rightBtnWrap = document.createElement("div")
-		rightBtnWrap.className = "note-rightBtnWrap"
-		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)))
+		const rightBtnWrap = document.createElement("div");
+		rightBtnWrap.className = "note-rightBtnWrap";
+		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)));
 
 		const reSyncBtn = document.createElement("div");
 		reSyncBtn.className = "note-global-btn";
-		reSyncBtn.innerHTML = `<img src="data:image/svg+xml;base64, ${syncIcon}">`;
+		reSyncBtn.createEl("img", {
+			attr: { src: `data:image/svg+xml;base64, ${syncIcon}` },
+		});
 		reSyncBtn.onclick = async () => {
-			await this.deleteNoteLocalDatabase()
-			this.loadData(this.note)
+			await this.deleteNoteLocalDatabase();
+			this.loadData(this.note);
 		};
 
 		rightBtnWrap.appendChild(reSyncBtn);
 
-		return rightBtnWrap
+		return rightBtnWrap;
 	}
 }

@@ -17,7 +17,7 @@ import {
 	shapeTypes,
 	ICON_PREV,
 	ICON_NEXT,
-	ICON_TAG
+	ICON_TAG,
 } from "src/constants";
 import idb from "src/idb";
 import OssUtil from "src/oss-util";
@@ -27,7 +27,7 @@ import Module from "src/neo_pen_wasm.js";
 import { ARGBToAGBR, generateCharcoal } from "./util";
 import TextboxForEllipsis from "./fabric/TextboxForEllipsis";
 import BooxPlugin from "main";
-import { pdfToPng } from './pdf_util'
+import { pdfToPng } from "./pdf_util";
 
 let wasm: any = {
 	ready: () => {
@@ -127,7 +127,7 @@ export class BooxNoteView extends TextFileView {
 
 	onload(): void {
 		super.onload();
-		this.contentEl.innerHTML = "";
+		this.contentEl.empty();
 		this.createMenuBtn();
 	}
 
@@ -154,7 +154,7 @@ export class BooxNoteView extends TextFileView {
 
 	clear(): void {
 		this.canvas = null;
-		this.contentEl.innerHTML = "";
+		this.contentEl.empty();
 	}
 
 	async handleAction(action: string, data: any) {
@@ -177,18 +177,18 @@ export class BooxNoteView extends TextFileView {
 			this.pageState.currentPage = 1;
 			this.pageState.pageId = this.pages[this.pageState.currentPage - 1];
 			this.updateMenuPageState();
-	
+
 			const pageId = this.pageState.pageId;
 			this.note.shapes = await this.loadShapes();
 			await this.initPage(pageId);
 			await this.renderPage(pageId);
-			await this.setAllActiveTags()
-			this.canvas.renderAll()
+			await this.setAllActiveTags();
+			this.canvas.renderAll();
 			setTimeout(() => {
 				this.hideLoading();
 			}, 500);
 		} catch (error) {
-			this.contentEl.innerHTML = "";
+			this.contentEl.empty();
 			this.hideLoading();
 		}
 	}
@@ -207,7 +207,7 @@ export class BooxNoteView extends TextFileView {
 		this.loadingEl.style.display = "flex";
 		this.loadingEl.style.justifyContent = "center";
 		this.loadingEl.style.alignItems = "center";
-		this.loadingEl.innerHTML = `<div class="lds-dual-ring"></div>`;
+		this.loadingEl.createEl("div", { cls: "lds-dual-ring" });
 		this.containerEl.appendChild(this.loadingEl);
 
 		// setTimeout(() => {
@@ -217,87 +217,99 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	async setAllActiveTags(renderCanvas?: any) {
-		const targetCanvas = renderCanvas || this.canvas
-		if (!targetCanvas) return
-		const result: any = {}
-		this.removeSelectedTags(targetCanvas)
+		const targetCanvas = renderCanvas || this.canvas;
+		if (!targetCanvas) return;
+		const result: any = {};
+		this.removeSelectedTags(targetCanvas);
 		targetCanvas.getObjects().forEach((item: any) => {
-			if (item.shape && item.shape.tagIdList && JSON.parse(item.shape.tagIdList).length) {
-			const key = JSON.parse(item.shape.tagIdList)[0]
-			item.clone((cloned: any) => {
-				Object.prototype.hasOwnProperty.call(result, key)
-				? result[key].push(cloned)
-				: (result[key] = [cloned])
-			})
+			if (
+				item.shape &&
+				item.shape.tagIdList &&
+				JSON.parse(item.shape.tagIdList).length
+			) {
+				const key = JSON.parse(item.shape.tagIdList)[0];
+				item.clone((cloned: any) => {
+					Object.prototype.hasOwnProperty.call(result, key)
+						? result[key].push(cloned)
+						: (result[key] = [cloned]);
+				});
 			}
-		})
+		});
 
-		if (Object.keys(result).length === 0) return
-		if (targetCanvas && typeof targetCanvas.getActiveObject === 'function') {
-			targetCanvas.discardActiveObject()
+		if (Object.keys(result).length === 0) return;
+		if (
+			targetCanvas &&
+			typeof targetCanvas.getActiveObject === "function"
+		) {
+			targetCanvas.discardActiveObject();
 		}
 
 		for (const key in result) {
-			const objs = result[key].filter((obj: any) => obj.width && obj.height)
-			const group = new fabric.Group(objs)
-			const rect = group.getBoundingRect()
+			const objs = result[key].filter(
+				(obj: any) => obj.width && obj.height
+			);
+			const group = new fabric.Group(objs);
+			const rect = group.getBoundingRect();
 
-			this.setTagSvg(targetCanvas, rect)
+			this.setTagSvg(targetCanvas, rect);
 		}
 	}
 
 	removeSelectedTags(targetCanvas: any) {
 		targetCanvas.getObjects().forEach((item: any) => {
 			if (item.selectedBG) {
-			targetCanvas.remove(item)
+				targetCanvas.remove(item);
 			}
-		})
+		});
 	}
-  
+
 	setTagSvg(targetCanvas: any, rect: any) {
 		fabric.loadSVGFromString(ICON_TAG, (obj: any, options: any) => {
-			const svg: any = fabric.util.groupSVGElements(obj, options)
+			const svg: any = fabric.util.groupSVGElements(obj, options);
 			// svg.left = rect.left
 			// svg.top = rect.top
-			svg.cache = true
-			svg.selectable = false
+			svg.cache = true;
+			svg.selectable = false;
 
-			const currentT = svg.calcTransformMatrix()
+			const currentT = svg.calcTransformMatrix();
 			const transformMatrix = [
-			rect.width / svg.width,
-			0,
-			0,
-			rect.height / svg.height,
-			currentT[4] - (svg.width - rect.width) / 2,
-			currentT[5] - (svg.height - rect.height) / 2
-			]
-			const mT = fabric.util.multiplyTransformMatrices(currentT, transformMatrix)
-			const opts = fabric.util.qrDecompose(mT)
-			svg.set(opts)
+				rect.width / svg.width,
+				0,
+				0,
+				rect.height / svg.height,
+				currentT[4] - (svg.width - rect.width) / 2,
+				currentT[5] - (svg.height - rect.height) / 2,
+			];
+			const mT = fabric.util.multiplyTransformMatrices(
+				currentT,
+				transformMatrix
+			);
+			const opts = fabric.util.qrDecompose(mT);
+			svg.set(opts);
 			const rectData = new fabric.Rect({
-			width: rect.width,
-			height: rect.height,
-			stroke: 'black',
-			strokeWidth: 1,
-			fill: 'transparent',
-			selectable: false
-			})
+				width: rect.width,
+				height: rect.height,
+				stroke: "black",
+				strokeWidth: 1,
+				fill: "transparent",
+				selectable: false,
+			});
 
 			const group: any = new fabric.Group([svg, rectData], {
-			left: rect.left,
-			top: rect.top,
-			selectable: false
-			})
+				left: rect.left,
+				top: rect.top,
+				selectable: false,
+			});
 
 			const shape = {
-			boundingRect: rect
-			}
-			group.shape = shape
-			group.selectedBG = true
-			group.isTag = true
-			targetCanvas.add(group)
-			group.moveTo(0)
-		})
+				boundingRect: rect,
+			};
+			group.shape = shape;
+			group.selectedBG = true;
+			group.isTag = true;
+			targetCanvas.add(group);
+			group.moveTo(0);
+		});
 	}
 
 	hideLoading() {
@@ -330,7 +342,7 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	async initPage(pageId: string) {
-		this.contentEl.innerHTML = "";
+		this.contentEl.empty();
 		this.canvasContentEl = document.createElement("div");
 		this.canvasContentEl.addClass("noteContent");
 		this.canvasContentEl.id = "noteContent";
@@ -419,76 +431,82 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	async setBackground(targetCanvas: any, page: string) {
-		if (!targetCanvas) return
-		const obj = await this.getBackgroundRes(page)
+		if (!targetCanvas) return;
+		const obj = await this.getBackgroundRes(page);
 		targetCanvas.setBackgroundColor(
-			'rgba(255, 255, 255, 1)',
+			"rgba(255, 255, 255, 1)",
 			targetCanvas.renderAll.bind(targetCanvas)
-		)
+		);
 		if (!obj) {
-			return
+			return;
 		}
 		return new Promise((resolve, reject) => {
 			if (obj.type === 0) {
 				fabric.loadSVGFromURL(obj.url, (objs, opts) => {
-					const bkGroundConfig = this.note.noteBackground.bkGroundConfig
-					const docBKGround = this.note.noteBackground.docBKGround
+					const bkGroundConfig =
+						this.note.noteBackground.bkGroundConfig;
+					const docBKGround = this.note.noteBackground.docBKGround;
 					if (bkGroundConfig.scaleType === 2) {
-						const patternSourceCanvas = new fabric.StaticCanvas()
-						const bgObj: any = fabric.util.groupSVGElements(objs, opts)
+						const patternSourceCanvas = new fabric.StaticCanvas();
+						const bgObj: any = fabric.util.groupSVGElements(
+							objs,
+							opts
+						);
 						bgObj.set({
 							left: 0,
 							top: 0,
 							scaleX: docBKGround.width / bgObj.width,
 							scaleY: docBKGround.height / bgObj.height,
-						})
+						});
 						patternSourceCanvas.setBackgroundImage(
 							bgObj,
-							patternSourceCanvas.renderAll.bind(patternSourceCanvas)
-						)
+							patternSourceCanvas.renderAll.bind(
+								patternSourceCanvas
+							)
+						);
 						patternSourceCanvas.setDimensions({
 							width: docBKGround.width,
 							height: docBKGround.height,
-						})
+						});
 						const dataURL = patternSourceCanvas.toDataURL({
-							format: 'png',
-						})
+							format: "png",
+						});
 						targetCanvas.setBackgroundColor(
 							{
 								source: dataURL,
-								repeat: 'repeat',
+								repeat: "repeat",
 							},
 							() => {
-								targetCanvas.renderAll()
+								targetCanvas.renderAll();
 								const dataUrl = targetCanvas.toDataURL({
-									format: 'png',
-								})
-								obj.url = dataUrl
-								obj.type = 1
-								targetCanvas.background = obj
-								resolve('ok')
+									format: "png",
+								});
+								obj.url = dataUrl;
+								obj.type = 1;
+								targetCanvas.background = obj;
+								resolve("ok");
 							}
-						)
+						);
 					} else {
-						const bgObj = fabric.util.groupSVGElements(objs, opts)
+						const bgObj = fabric.util.groupSVGElements(objs, opts);
 						bgObj.set({
 							left: 0,
 							top: 0,
 							scaleX: this.note.originWidth / bgObj.width,
 							scaleY: this.note.originHeight / bgObj.height,
-						})
+						});
 						targetCanvas.setBackgroundImage(bgObj, () => {
-							targetCanvas.renderAll()
+							targetCanvas.renderAll();
 							const dataUrl = targetCanvas.toDataURL({
-								format: 'png',
-							})
-							obj.url = dataUrl
-							obj.type = 1
-							targetCanvas.background = obj
-							resolve('ok')
-						})
+								format: "png",
+							});
+							obj.url = dataUrl;
+							obj.type = 1;
+							targetCanvas.background = obj;
+							resolve("ok");
+						});
 					}
-				})
+				});
 			} else if (obj.type === 2) {
 				// pdf背景模版
 				fabric.Image.fromURL(
@@ -499,242 +517,255 @@ export class BooxNoteView extends TextFileView {
 							top: 0,
 							scaleX: this.note.originWidth / img.width,
 							scaleY: this.note.originHeight / img.height,
-						}
+						};
 						targetCanvas.setBackgroundImage(
 							img,
 							targetCanvas.renderAll.bind(targetCanvas),
 							opts
-						)
+						);
 						const dataUrl = targetCanvas.toDataURL({
-							format: 'png',
-						})
-						obj.url = dataUrl
-						targetCanvas.background = obj
-						resolve('ok')
+							format: "png",
+						});
+						obj.url = dataUrl;
+						targetCanvas.background = obj;
+						resolve("ok");
 					},
 					{
-						crossOrigin: 'anonymous',
+						crossOrigin: "anonymous",
 					}
-				)
+				);
 			} else {
 				fabric.Image.fromURL(
 					obj.url,
 					(img) => {
-						const bkGroundConfig = this.note.noteBackground.bkGroundConfig
-						const docBKGround = this.note.noteBackground.docBKGround
-						img.scaleToWidth(docBKGround.width)
-						img.scaleToHeight(docBKGround.height)
+						const bkGroundConfig =
+							this.note.noteBackground.bkGroundConfig;
+						const docBKGround =
+							this.note.noteBackground.docBKGround;
+						img.scaleToWidth(docBKGround.width);
+						img.scaleToHeight(docBKGround.height);
 						if (!bkGroundConfig || bkGroundConfig.scaleType === 0) {
 							const opts = {
 								left: 0,
 								top: 0,
 								scaleX: this.note.originWidth / img.width,
 								scaleY: this.note.originHeight / img.height,
-							}
+							};
 							targetCanvas.setBackgroundImage(
 								img,
 								targetCanvas.renderAll.bind(targetCanvas),
 								opts
-							)
+							);
 							const dataUrl = targetCanvas.toDataURL({
-								format: 'png',
-							})
-							obj.url = dataUrl
-							targetCanvas.background = obj
-							resolve('ok')
+								format: "png",
+							});
+							obj.url = dataUrl;
+							targetCanvas.background = obj;
+							resolve("ok");
 						} else if (bkGroundConfig.scaleType === 1) {
-							const scaleX = this.note.originWidth / img.width
-							const scaleY = this.note.originHeight / img.height
-							const scale = Math.min(scaleX, scaleY)
+							const scaleX = this.note.originWidth / img.width;
+							const scaleY = this.note.originHeight / img.height;
+							const scale = Math.min(scaleX, scaleY);
 							const opts = {
 								top: this.note.originHeight / 2,
 								left: this.note.originWidth / 2,
-								originX: 'center',
-								originY: 'center',
+								originX: "center",
+								originY: "center",
 								scaleX: scale,
 								scaleY: scale,
-							}
+							};
 							targetCanvas.setBackgroundImage(
 								img,
 								targetCanvas.renderAll.bind(targetCanvas),
 								opts
-							)
+							);
 							const dataUrl = targetCanvas.toDataURL({
-								format: 'png',
-							})
-							obj.url = dataUrl
-							targetCanvas.background = obj
-							resolve('ok')
+								format: "png",
+							});
+							obj.url = dataUrl;
+							targetCanvas.background = obj;
+							resolve("ok");
 						} else if (bkGroundConfig.scaleType === 3) {
-							const scaleX = docBKGround.width / img.width
-							const scaleY = docBKGround.height / img.height
-							const scale = Math.min(scaleX, scaleY)
+							const scaleX = docBKGround.width / img.width;
+							const scaleY = docBKGround.height / img.height;
+							const scale = Math.min(scaleX, scaleY);
 							const opts = {
 								top: docBKGround.height / 2,
 								left: docBKGround.width / 2,
-								originX: 'center',
-								originY: 'center',
+								originX: "center",
+								originY: "center",
 								scaleX: scale,
 								scaleY: scale,
-							}
+							};
 							targetCanvas.setBackgroundImage(
 								img,
 								targetCanvas.renderAll.bind(targetCanvas),
 								opts
-							)
+							);
 							const dataUrl = targetCanvas.toDataURL({
-								format: 'png',
-							})
-							obj.url = dataUrl
-							targetCanvas.background = obj
-							resolve('ok')
+								format: "png",
+							});
+							obj.url = dataUrl;
+							targetCanvas.background = obj;
+							resolve("ok");
 						} else if (bkGroundConfig.scaleType === 2) {
-							const patternSourceCanvas = new fabric.StaticCanvas()
-							const scaleX = docBKGround.width / img.width
-							const scaleY = docBKGround.height / img.height
-							const scale = Math.min(scaleX, scaleY)
+							const patternSourceCanvas =
+								new fabric.StaticCanvas();
+							const scaleX = docBKGround.width / img.width;
+							const scaleY = docBKGround.height / img.height;
+							const scale = Math.min(scaleX, scaleY);
 							const opts = {
 								top: docBKGround.height / 2,
 								left: docBKGround.width / 2,
-								originX: 'center',
-								originY: 'center',
+								originX: "center",
+								originY: "center",
 								scaleX: scale,
 								scaleY: scale,
-							}
+							};
 							patternSourceCanvas.setBackgroundImage(
 								img,
 								patternSourceCanvas.renderAll.bind(
 									patternSourceCanvas
 								),
 								opts
-							)
+							);
 							patternSourceCanvas.setDimensions({
 								width: docBKGround.width,
 								height: docBKGround.height,
-							})
+							});
 							const dataURL = patternSourceCanvas.toDataURL({
-								format: 'png',
-							})
+								format: "png",
+							});
 							targetCanvas.setBackgroundColor(
 								{
 									source: dataURL,
-									repeat: 'repeat',
+									repeat: "repeat",
 								},
 								() => {
-									targetCanvas.renderAll()
+									targetCanvas.renderAll();
 									const dataUrl = targetCanvas.toDataURL({
-										format: 'png',
-									})
-									obj.url = dataUrl
-									targetCanvas.background = obj
-									resolve('ok')
+										format: "png",
+									});
+									obj.url = dataUrl;
+									targetCanvas.background = obj;
+									resolve("ok");
 								}
-							)
+							);
 						}
 					},
 					{
-						crossOrigin: 'anonymous',
+						crossOrigin: "anonymous",
 					}
-				)
+				);
 			}
-		})
+		});
 	}
 
 	async getBackgroundRes(page: string) {
-		let url = null
-		let type = 0
-		const bgObj = this.note.noteBackground
+		let url = null;
+		let type = 0;
+		const bgObj = this.note.noteBackground;
 		if (!bgObj) {
-			return null
+			return null;
 		}
-		let bgType = 'normal'
+		let bgType = "normal";
 		if (COLOR_MODEL.indexOf(this.note.deviceInfo.deviceName) !== -1) {
-			bgType = 'color'
+			bgType = "color";
 		}
 
-		if (bgObj.useDocBKGround || (!bgObj.pageBKGroundMap[page] && bgObj.docBKGround?.value)) {
+		if (
+			bgObj.useDocBKGround ||
+			(!bgObj.pageBKGroundMap[page] && bgObj.docBKGround?.value)
+		) {
 			if (bgObj.docBKGround.type === 0) {
-				return null
+				return null;
 			} else if (
 				bgObj.docBKGround.cloud &&
 				bgObj.docBKGround.type === backgroundType.IMAGE_FILE
 			) {
-				url = await this.getCloudBackground(bgObj.docBKGround.resId)
-				type = 1
+				url = await this.getCloudBackground(bgObj.docBKGround.resId);
+				type = 1;
 			} else if (
 				!bgObj.docBKGround.cloud &&
 				bgObj.docBKGround.type === backgroundType.IMAGE_FILE
 			) {
-				url = await this.getCustomBackground(bgObj.docBKGround.resId)
+				url = await this.getCustomBackground(bgObj.docBKGround.resId);
 				if (!url) {
-					url = await this.getCustomBackgroundV2(bgObj.docBKGround)
+					url = await this.getCustomBackgroundV2(bgObj.docBKGround);
 				}
-				type = 1
+				type = 1;
 			} else {
-				url = `https://static.send2boox.com/device/note/background/${bgType}/${bgObj.docBKGround.resId}.svg`
+				url = `https://static.send2boox.com/device/note/background/${bgType}/${bgObj.docBKGround.resId}.svg`;
 			}
 		} else if (bgObj.pageBKGroundMap[page]) {
 			if (bgObj.pageBKGroundMap[page].type === 0) {
-				return url
+				return url;
 			}
 			if (
-				bgObj.pageBKGroundMap[page].type !== backgroundType.IMAGE_FILE &&
+				bgObj.pageBKGroundMap[page].type !==
+					backgroundType.IMAGE_FILE &&
 				bgObj.pageBKGroundMap[page].type !== backgroundType.PDF_FILE
 			) {
-				url = `https://static.send2boox.com/device/note/background/${bgType}/${bgObj.pageBKGroundMap[page].resId}.svg`
+				url = `https://static.send2boox.com/device/note/background/${bgType}/${bgObj.pageBKGroundMap[page].resId}.svg`;
 			} else if (
 				bgObj.pageBKGroundMap[page].cloud &&
 				bgObj.pageBKGroundMap[page].type === backgroundType.IMAGE_FILE
 			) {
-				url = await this.getCloudBackground(bgObj.pageBKGroundMap[page].resId)
-				type = 1
+				url = await this.getCloudBackground(
+					bgObj.pageBKGroundMap[page].resId
+				);
+				type = 1;
 			} else if (
 				!bgObj.pageBKGroundMap[page].cloud &&
 				bgObj.pageBKGroundMap[page].type === backgroundType.IMAGE_FILE
 			) {
-				url = await this.getCustomBackground(bgObj.pageBKGroundMap[page].resId)
+				url = await this.getCustomBackground(
+					bgObj.pageBKGroundMap[page].resId
+				);
 				if (!url) {
-					url = await this.getCustomBackgroundV2(bgObj.pageBKGroundMap[page])
+					url = await this.getCustomBackgroundV2(
+						bgObj.pageBKGroundMap[page]
+					);
 				}
-				type = 1
+				type = 1;
 			} else if (
 				!bgObj.pageBKGroundMap[page].cloud &&
 				bgObj.pageBKGroundMap[page].type === backgroundType.PDF_FILE
 			) {
-				url = await this.getPdfBackground(bgObj.pageBKGroundMap[page])
-				type = 2
+				url = await this.getPdfBackground(bgObj.pageBKGroundMap[page]);
+				type = 2;
 			} else {
-				url = bgObj.pageBKGroundMap[page].resId
+				url = bgObj.pageBKGroundMap[page].resId;
 			}
 		}
-		let obj
+		let obj;
 		if (url) {
 			obj = {
 				url,
 				type,
-			}
+			};
 		}
-		return obj
+		return obj;
 	}
 
 	async getPdfBackground(bgObj: any) {
-		const key = `${this.note.user}/note/${this.note.uniqueId}/resource/data/${bgObj.value
-			.split('/')
-			.pop()}`
+		const key = `${this.note.user}/note/${
+			this.note.uniqueId
+		}/resource/data/${bgObj.value.split("/").pop()}`;
 		try {
 			let res = await this.getBackground(bgObj.resId);
 			if (!res) {
 				const url = await this.oss.getResourceUrl(key);
-				const img = await pdfToPng(url, bgObj.resIndex + 1)
-				res = img
+				const img = await pdfToPng(url, bgObj.resIndex + 1);
+				res = img;
 				this.saveBackground(bgObj.resId, res);
 			} else {
-				res = res.data
+				res = res.data;
 			}
-			return res
+			return res;
 		} catch (error) {
-			console.log('=== error: ', error)
-			return null
+			console.log("=== error: ", error);
+			return null;
 		}
 	}
 
@@ -759,7 +790,6 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	async getCustomBackground(commitId: string) {
-
 		let url = null;
 		const key = `${this.note.user}/resource/${commitId}`;
 		const imageExt = ["png", "jpg", "bmp", "jpeg"];
@@ -782,10 +812,10 @@ export class BooxNoteView extends TextFileView {
 		try {
 			let res = await this.getBackground(bgObj.resId);
 			if (!res) {
-				const isExist = await this.oss.headFile(`${key}/${filename1}`)
+				const isExist = await this.oss.headFile(`${key}/${filename1}`);
 				const url = isExist
-				? await this.oss.getResourceUrl(`${key}/${filename1}`)
-				: await this.oss.getResourceUrl(`${key}/${filename2}`);
+					? await this.oss.getResourceUrl(`${key}/${filename1}`)
+					: await this.oss.getResourceUrl(`${key}/${filename2}`);
 				res = await fetch(url);
 				res = await res.blob();
 				this.saveBackground(bgObj.resId, res);
@@ -807,7 +837,6 @@ export class BooxNoteView extends TextFileView {
 		});
 		return data;
 	}
-
 
 	async saveBackground(id: string, data: any) {
 		try {
@@ -900,7 +929,6 @@ export class BooxNoteView extends TextFileView {
 		}
 
 		// await this.renderTmpData(tmpData.shapes);
-
 	}
 
 	async renderShape(shape: any) {
@@ -998,10 +1026,10 @@ export class BooxNoteView extends TextFileView {
 
 	async loadShapes() {
 		try {
-			const db:any = await idb.getShapeDB(this.shapeDbName);
+			const db: any = await idb.getShapeDB(this.shapeDbName);
 			const shapes = await db.shape.toArray();
-		
-			return shapes || []
+
+			return shapes || [];
 		} catch (error) {
 			console.log(error);
 		}
@@ -1202,10 +1230,7 @@ export class BooxNoteView extends TextFileView {
 	async checkShapes(uniqueId: string) {
 		try {
 			const db: any = idb.getPointDB(this.shapeDataDbName);
-			const count = await db.point
-				.where("id")
-				.equals(uniqueId)
-				.count();
+			const count = await db.point.where("id").equals(uniqueId).count();
 			return !!count;
 		} catch (error) {
 			console.log(error);
@@ -1242,16 +1267,21 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	async deleteNoteLocalDatabase() {
-		await idb.deleteDB(this.shapeDbName)
-		await idb.deleteDB(this.shapeDataDbName)
-		await idb.deleteDB(`${this.shapeDbName}_resource`)
-		await idb.deleteDB(`_tmp_${this.shapeDbName}`)
-		await idb.deleteDB(`_tmp_${this.shapeDataDbName}`)
+		await idb.deleteDB(this.shapeDbName);
+		await idb.deleteDB(this.shapeDataDbName);
+		await idb.deleteDB(`${this.shapeDbName}_resource`);
+		await idb.deleteDB(`_tmp_${this.shapeDbName}`);
+		await idb.deleteDB(`_tmp_${this.shapeDataDbName}`);
 
-		const db:any = idb.getPBFileDB()
-		const records = await db.resource.where('documentUniqueId').equals(this.note.uniqueId).toArray()
-		const deletes = records.map((record: any) => db.resource.delete(record.id))
-		await Promise.all(deletes)
+		const db: any = idb.getPBFileDB();
+		const records = await db.resource
+			.where("documentUniqueId")
+			.equals(this.note.uniqueId)
+			.toArray();
+		const deletes = records.map((record: any) =>
+			db.resource.delete(record.id)
+		);
+		await Promise.all(deletes);
 	}
 
 	renderPenShape(shape: any) {
@@ -1792,42 +1822,43 @@ export class BooxNoteView extends TextFileView {
 				fabric.Image.fromURL(
 					imgUrl,
 					(img: any) => {
-						img.id = shape._id
-						img.shape = shape
-						img.start = start
-						img.end = end
-						img.left = start.x
-						img.top = start.y
+						img.id = shape._id;
+						img.shape = shape;
+						img.start = start;
+						img.end = end;
+						img.left = start.x;
+						img.top = start.y;
 
-						img = this.setMetadata(img, shape)
+						img = this.setMetadata(img, shape);
 
-						img.scaleToWidth(width)
-						img.scaleToHeight(height)
+						img.scaleToWidth(width);
+						img.scaleToHeight(height);
 
-						const centerX = start.x + width / 2
-						const centerY = start.y + height / 2
-						const matrix = shape.meta.matrixValues.values
+						const centerX = start.x + width / 2;
+						const centerY = start.y + height / 2;
+						const matrix = shape.meta.matrixValues.values;
 						const transformMatrix = [
 							matrix[0],
 							matrix[3],
 							matrix[1],
 							matrix[4],
 							matrix[2],
-							matrix[5]
-						]
+							matrix[5],
+						];
 						if (
-							(transformMatrix[3] === -1 && !transformMatrix[4]) ||
+							(transformMatrix[3] === -1 &&
+								!transformMatrix[4]) ||
 							(transformMatrix[0] === -1 && !transformMatrix[5])
 						) {
 							img.set({
-							originX: 'center',
-							originY: 'center',
-							left: centerX,
-							top: centerY
-							})
+								originX: "center",
+								originY: "center",
+								left: centerX,
+								top: centerY,
+							});
 						}
-						img.pointData = shapeData
-						img.src = imgUrl
+						img.pointData = shapeData;
+						img.src = imgUrl;
 						resolve(img);
 					},
 					{
@@ -2592,13 +2623,15 @@ export class BooxNoteView extends TextFileView {
 		this.updateMenuPageState();
 		await this.initPage(this.pageState.pageId);
 		await this.renderPage(this.pageState.pageId);
-		await this.setAllActiveTags()
-		this.canvas.renderAll()
+		await this.setAllActiveTags();
+		this.canvas.renderAll();
 		this.hideLoading();
 	}
 
 	updateMenuPageState() {
-		const currentPage: any = document.querySelector(".pageBtnWrap-currentPage");
+		const currentPage: any = document.querySelector(
+			".pageBtnWrap-currentPage"
+		);
 		const totalPage: any = document.querySelector(".pageBtnWrap-total");
 		const pageInput: any = document.querySelector(".pageBtnWrap-input");
 		pageInput.value = this.pageState.currentPage;
@@ -2607,10 +2640,9 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	showPageInput() {
-		const pageInfo:any = document.querySelector(".pageBtnWrap-page-info");
-		const pageInput:any = document.querySelector(".pageBtnWrap-input");
-		if(isShowPageInput) {
-			
+		const pageInfo: any = document.querySelector(".pageBtnWrap-page-info");
+		const pageInput: any = document.querySelector(".pageBtnWrap-input");
+		if (isShowPageInput) {
 			// pageInput.oninput = (e: any) => {
 			// 	const value = parseInt(e.target.value);
 			// 	this.goToPage(value);
@@ -2618,64 +2650,64 @@ export class BooxNoteView extends TextFileView {
 
 			pageInput.onblur = () => {
 				let value = parseInt(pageInput.value);
-				if(value > this.pageState.totalPage) {
-					value = this.pageState.totalPage
-				}else if(value < 1) {
-					value = 1
+				if (value > this.pageState.totalPage) {
+					value = this.pageState.totalPage;
+				} else if (value < 1) {
+					value = 1;
 				}
 				this.goToPage(value);
-				isShowPageInput = false
-				this.showPageInput()
-			}
+				isShowPageInput = false;
+				this.showPageInput();
+			};
 
 			pageInput.onkeydown = (e: any) => {
 				if (e.key === "Enter") {
 					pageInput.blur();
 				}
-			}
-			
+			};
+
 			pageInput.style.display = "flex";
 			pageInput.select();
 			pageInfo.style.display = "none";
-		}else {
+		} else {
 			pageInput.style.display = "none";
-			pageInput.onblur = null
-			pageInput.onkeydown = null
+			pageInput.onblur = null;
+			pageInput.onkeydown = null;
 			pageInfo.style.display = "flex";
-
 		}
 	}
 
 	createMenuBtn() {
-		
 		const menu = document.createElement("div");
 		menu.className = "note-menu";
 
-		const rightBtnWrap = this.createRightBtn()
-		const pageBtnWrap = this.createPageBtn()
+		const rightBtnWrap = this.createRightBtn();
+		const pageBtnWrap = this.createPageBtn();
 
-		menu.appendChild(rightBtnWrap)
-		menu.appendChild(pageBtnWrap)
+		menu.appendChild(rightBtnWrap);
+		menu.appendChild(pageBtnWrap);
 
 		this.containerEl.appendChild(menu);
 	}
 
 	createRightBtn() {
-		const rightBtnWrap = document.createElement("div")
-		rightBtnWrap.className = "note-rightBtnWrap"
-		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)))
+		const rightBtnWrap = document.createElement("div");
+		rightBtnWrap.className = "note-rightBtnWrap";
+		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)));
 
 		const reSyncBtn = document.createElement("div");
 		reSyncBtn.className = "note-global-btn";
-		reSyncBtn.innerHTML = `<img src="data:image/svg+xml;base64, ${syncIcon}">`;
+		reSyncBtn.createEl("img", {
+			attr: { src: `data:image/svg+xml;base64, ${syncIcon}` },
+		});
 		reSyncBtn.onclick = async () => {
-			await this.deleteNoteLocalDatabase()
-			this.loadData(this.note)
+			await this.deleteNoteLocalDatabase();
+			this.loadData(this.note);
 		};
 
 		rightBtnWrap.appendChild(reSyncBtn);
 
-		return rightBtnWrap
+		return rightBtnWrap;
 	}
 
 	createPageBtn() {
@@ -2684,18 +2716,18 @@ export class BooxNoteView extends TextFileView {
 
 		const prevBtn = document.createElement("div");
 		prevBtn.className = "note-global-btn";
-		prevBtn.innerHTML = `<img src="data:image/svg+xml;base64, ${btoa(
-			ICON_PREV
-		)}">`;
+		prevBtn.createEl("img", {
+			attr: { src: `data:image/svg+xml;base64, ${btoa(ICON_PREV)}` },
+		});
 		prevBtn.onclick = () => {
 			this.prevPage();
 		};
 
 		const nextBtn = document.createElement("div");
 		nextBtn.className = "note-global-btn";
-		nextBtn.innerHTML = `<img src="data:image/svg+xml;base64, ${btoa(
-			ICON_NEXT
-		)}">`;
+		nextBtn.createEl("img", {
+			attr: { src: `data:image/svg+xml;base64, ${btoa(ICON_NEXT)}` },
+		});
 		nextBtn.onclick = () => {
 			this.nextPage();
 		};
@@ -2705,31 +2737,36 @@ export class BooxNoteView extends TextFileView {
 
 		const pageInfo = document.createElement("div");
 		pageInfo.className = "pageBtnWrap-page-info";
-		pageInfo.innerHTML = `
-			<div class="pageBtnWrap-page-item pageBtnWrap-currentPage">${this.pageState.currentPage}</div>
-			<span class="pageBtnWrap-page-item pageBtnWrap-separator">/</span>
-			<div class="pageBtnWrap-page-item pageBtnWrap-total">${this.pageState.totalPage}</div>
-		`;
-
+		pageInfo.createEl("div", {
+			cls: ["pageBtnWrap-page-item", "pageBtnWrap-currentPage"],
+			text: this.pageState.currentPage,
+		});
+		pageInfo.createEl("span", {
+			cls: ["pageBtnWrap-page-item", "pageBtnWrap-separator"],
+			text: "/",
+		});
+		pageInfo.createEl("div", {
+			cls: ["pageBtnWrap-page-item", "pageBtnWrap-total"],
+			text: this.pageState.totalPage,
+		});
 		pageInfo.onclick = () => {
-			isShowPageInput = true
-			this.showPageInput()
-		}
+			isShowPageInput = true;
+			this.showPageInput();
+		};
 
 		const pageInput = document.createElement("input");
 		pageInput.className = "pageBtnWrap-input";
 		pageInput.type = "number";
 		pageInput.id = "menuPageInput";
 		pageInput.value = this.pageState.currentPage;
-		
+
 		pageCtx?.appendChild(pageInfo);
 		pageCtx?.appendChild(pageInput);
-		
 
 		pageBtnWrap.appendChild(prevBtn);
 		pageBtnWrap.appendChild(pageCtx);
 		pageBtnWrap.appendChild(nextBtn);
 
-		return pageBtnWrap
+		return pageBtnWrap;
 	}
 }
