@@ -8,11 +8,10 @@ import Api from "src/api";
 import OssUtil from "src/oss-util";
 import { BASE_DIR, DATA_DIR, ICON_LOGO } from "src/constants";
 
-import loading from 'src/assets/images/loading.png'
+import loading from "src/assets/images/loading.png";
 import idb from "src/idb";
 
 // Remember to rename these classes and interfaces!
-
 interface BooxPluginSettings {
 	accessToken: string;
 	uid: string;
@@ -27,7 +26,8 @@ const DEFAULT_SETTINGS: BooxPluginSettings = {
 	uid: "",
 	token: "",
 	syncToken: "",
-	server: "https://send2boox.com",
+	// server: "https://send2boox.com",
+	server: "https://dev.send2boox.com",
 	syncEnabled: false,
 };
 
@@ -37,11 +37,11 @@ export default class BooxPlugin extends Plugin {
 	loadingEl: any;
 	intervalTask: number;
 	async onunload() {
-		this.removeLoading()
+		this.removeLoading();
 	}
 	async onload() {
 		this.app.workspace.onLayoutReady(async () => {
-			await this.initDataDir()
+			await this.initDataDir();
 			if (this.settings?.syncEnabled) {
 				this.setIntervalTask();
 			}
@@ -57,23 +57,21 @@ export default class BooxPlugin extends Plugin {
 		const ribbonIconEl = this.addRibbonIcon(
 			"boox",
 			"BOOX",
-			(evt: MouseEvent) => {
-				
+			async (evt: MouseEvent) => {
 				// Called when the user clicks the icon.
 				if (this.settings.token) {
 					this.boox.doAction("checkNoteTreeCreated", "");
 
 					return new Notice("用户已登录", 3000);
 				}
-				this.boox.getUserInfo().then((userInfo) => {
-					console.log("userInfo: ", userInfo);
-					if (userInfo) {
-						this.settings.uid = userInfo.uid;
-						this.settings.token = userInfo.token;
-						this.settings.syncToken = userInfo.syncToken;
-						this.saveSettings();
-					}
-				});
+				const userInfo = await this.boox.getUserInfo();
+				console.log("userInfo: ", userInfo);
+				if (userInfo) {
+					this.settings.uid = userInfo.uid;
+					this.settings.token = userInfo.token;
+					this.settings.syncToken = userInfo.syncToken;
+					this.saveSettings();
+				}
 			}
 		);
 		ribbonIconEl.addClass("boox-plugin-ribbon-class");
@@ -91,36 +89,38 @@ export default class BooxPlugin extends Plugin {
 		this.registerExtensions(["toox"], BOOX_TEXT_VIEW_TYPE);
 
 		this.boox.subject.subscribe(async (obj: any) => {
-			const {action, data} = obj;
-			if (action === 'syncState') {
-				if(this.loadingEl){
-					this.loadingEl.style.display = data === 'CHANGED' ? 'block' : 'none'
+			const { action, data } = obj;
+			if (action === "syncState") {
+				if (this.loadingEl) {
+					this.loadingEl.style.display =
+						data === "CHANGED" ? "block" : "none";
 				}
-			}else if(action === 'syncEnabled') {
-				if(data) {
-					await this.initDataDir()
-					this.setIntervalTask() 
-				}else {
-					this.clearIntervals()
+			} else if (action === "syncEnabled") {
+				if (data) {
+					await this.initDataDir();
+					this.setIntervalTask();
+				} else {
+					this.clearIntervals();
 				}
 			}
 		});
 
 		const lastOpenedFilePath = localStorage.getItem("lastOpenedFile");
 		if (lastOpenedFilePath) {
-			const file = this.app.vault.getAbstractFileByPath(lastOpenedFilePath);
+			const file =
+				this.app.vault.getAbstractFileByPath(lastOpenedFilePath);
 
 			if (file instanceof TFile) {
 				this.app.workspace.getLeaf().openFile(file);
 			}
 		}
-		this.vaultOnEvent()
+		this.vaultOnEvent();
 	}
 
 	async initDataDir() {
-		await this.setDataDir()
+		await this.setDataDir();
 		setTimeout(() => {
-			this.createLoading()
+			this.createLoading();
 		}, 500);
 	}
 
@@ -136,18 +136,18 @@ export default class BooxPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async vaultOnEvent () {
-		this.app.vault.on('delete', async (file) => {
-			if(file.path === 'BOOX') {
-				this.removeLoading()
-				await idb.deleteSettings(this.settings.uid, 'last_seq');
+	async vaultOnEvent() {
+		this.app.vault.on("delete", async (file) => {
+			if (file.path === "BOOX") {
+				this.removeLoading();
+				await idb.deleteSettings(this.settings.uid, "last_seq");
 			}
-		})
+		});
 	}
 
 	async setDataDir() {
 		const dataDir = `${BASE_DIR}/${DATA_DIR}`;
-		const workspace = this.app.vault.getAbstractFileByPath(BASE_DIR)
+		const workspace = this.app.vault.getAbstractFileByPath(BASE_DIR);
 
 		if (!workspace || !(workspace instanceof TFolder)) {
 			await this.app.vault.createFolder(dataDir);
@@ -155,26 +155,33 @@ export default class BooxPlugin extends Plugin {
 	}
 
 	async createLoading() {
-		if(this.loadingEl) return;
-		const selector = '.nav-files-container .nav-folder .tree-item-children .nav-folder div[data-path=BOOX]';
-		const fileExplorer = this.app.workspace.containerEl.querySelector(selector) as HTMLElement;
-		this.loadingEl = document.createElement('img');
-
+		if (this.loadingEl) return;
+		const selector =
+			".nav-files-container .nav-folder .tree-item-children .nav-folder div[data-path=BOOX]";
+		const fileExplorer = this.app.workspace.containerEl.querySelector(
+			selector
+		) as HTMLElement;
+		this.loadingEl = document.createElement("img");
 		this.loadingEl.src = loading;
 		this.loadingEl.width = 15;
 		this.loadingEl.height = 15;
-		this.loadingEl.addClass('loading')
-		this.loadingEl.style.display = 'none';
+		this.loadingEl.addClass("loading");
+		this.loadingEl.style.position = "absolute";
+		this.loadingEl.style.right = "10px";
+		this.loadingEl.style.display = "none";
 		if (fileExplorer) {
-			fileExplorer.style.justifyContent = 'space-between';
-			fileExplorer.style.alignItems = 'center';
+			fileExplorer.style.position = "relative";
+			fileExplorer.style.alignItems = "center";
 			fileExplorer.appendChild(this.loadingEl);
-		}		
+		}
 	}
 
 	async removeLoading() {
-		const selector = '.nav-files-container .nav-folder .tree-item-children .nav-folder div[data-path=BOOX]';
-		const fileExplorer = this.app.workspace.containerEl.querySelector(selector) as HTMLElement;
+		const selector =
+			".nav-files-container .nav-folder .tree-item-children .nav-folder div[data-path=BOOX]";
+		const fileExplorer = this.app.workspace.containerEl.querySelector(
+			selector
+		) as HTMLElement;
 		if (fileExplorer && fileExplorer.contains(this.loadingEl)) {
 			fileExplorer.removeChild(this.loadingEl);
 		}
@@ -183,10 +190,10 @@ export default class BooxPlugin extends Plugin {
 
 	setIntervalTask() {
 		this.registerInterval(
-			this.intervalTask = window.setInterval(async () => {
-				console.log('---------------setIntervalTask----------------')
+			(this.intervalTask = window.setInterval(async () => {
+				console.log("---------------setIntervalTask----------------");
 				await this.boox.doAction("getChanges", "");
-			}, 5 * 1000)
+			}, 5 * 1000))
 		);
 	}
 

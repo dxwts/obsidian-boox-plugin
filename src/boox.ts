@@ -1,10 +1,9 @@
 import Api from "src/api";
 import BooxPlugin from "main";
-import { App, TFolder, TFile } from 'obsidian'
+import { App, TFolder, TFile } from "obsidian";
 
 import idb from "src/idb";
 
-import http from "http";
 import _ from "lodash";
 import { Subject } from "rxjs";
 
@@ -27,8 +26,8 @@ export class Boox {
 	}
 
 	async createFolder(folder: string) {
-		const workspace = this.app.vault.getAbstractFileByPath(folder)
-		
+		const workspace = this.app.vault.getAbstractFileByPath(folder);
+
 		if (!workspace || !(workspace instanceof TFolder)) {
 			try {
 				await this.app.vault.createFolder(folder);
@@ -43,7 +42,7 @@ export class Boox {
 
 	async createNote(note: any) {
 		const file = this.app.vault.getAbstractFileByPath(note.path);
-		
+
 		if (!file || !(file instanceof TFile)) {
 			try {
 				await this.app.vault.create(note.path, note.content);
@@ -88,12 +87,14 @@ export class Boox {
 		for (const item of notes) {
 			let created = false;
 
-			if (item.type === 0) {   // folder
+			if (item.type === 0) {
+				// folder
 				const path = `${baseDir}/${item.title}`;
 
 				created = await this.createFolder(path);
 				await this.createNotes(path, item.children);
-			} else if (item.type === 1) {   // file
+			} else if (item.type === 1) {
+				// file
 				const ext = !item.activeScene ? "boox" : "toox";
 				const name = `${baseDir}/${item.title}.${ext}`;
 
@@ -135,35 +136,13 @@ export class Boox {
 		}
 	}
 
-	request(options: any) {
-		return new Promise((resolve, reject) => {
-			const req = http.request(options, (res) => {
-				let data = "";
-
-				res.on("data", (chunk) => {
-					data += chunk;
-				});
-
-				res.on("end", () => {
-					resolve(data);
-				});
-			});
-
-			req.on("error", (error) => {
-				reject(error);
-			});
-			
-			req.end();
-		});
-	}
-
 	async getLastSeq() {
 		try {
 			const res = await idb.getSettings(this.uid, "last_seq");
-			
+
 			return res?.data || 0;
 		} catch (error) {
-			return 0
+			return 0;
 		}
 	}
 
@@ -186,17 +165,12 @@ export class Boox {
 		switch (action) {
 			case "getChanges": {
 				const res = await this.getChanges();
-
-				this.subject.next({
-					action: "saveDocs",
-					data: res,
-				});
-				
+				this.saveDocs(res);
 				break;
 			}
-			case "saveDocs":
-				this.saveDocs(data);
-				break;
+			// case "saveDocs":
+			// 	this.saveDocs(data);
+			// 	break;
 			case "checkNoteTreeCreated":
 				this.checkNoteTreeCreated();
 				break;
@@ -206,30 +180,18 @@ export class Boox {
 	}
 
 	async getChanges() {
-		const channels = `${this.plugin.settings.uid}-NOTE_TREE`;
-		const since = await this.getLastSeq();
-		const host = this.plugin.settings.server.split('//')[1]
-		const opts = {
-			hostname: host,
-			path: `/neocloud/_changes?style=all_docs&filter=sync_gateway%2Fbychannel&channels=${channels}&since=${since}&limit=500`,
-			method: "GET",
-			headers: {
-				Cookie: `SyncGatewaySession=${this.plugin.settings.syncToken}`,
-			}
-		};
-		
 		try {
-			let data: any = await this.request(opts);
-			data = JSON.parse(data)
-			if (!data?.results.length) {
-				this.subject.next({ action: 'syncState', data: 'UNCHANGED' });
+			const res = await this.api.getNoteChanges();
+
+			if (!res?.results.length) {
+				this.subject.next({ action: "syncState", data: "UNCHANGED" });
 			} else {
-				this.subject.next({ action: 'syncState', data: 'CHANGED' });
+				this.subject.next({ action: "syncState", data: "CHANGED" });
 			}
 
-			return data;
+			return res;
 		} catch (error) {
-			return {};
+			console.log(error);
 		}
 	}
 
@@ -253,20 +215,10 @@ export class Boox {
 	}
 
 	async getDoc(docId: string) {
-		const host = this.plugin.settings.server.split('//')[1]
-		const opts = {
-			hostname: host,
-			path: `/neocloud/${docId}`,
-			method: "GET",
-			headers: {
-				Cookie: `SyncGatewaySession=${this.plugin.settings.syncToken}`,
-			}
-		};
 		try {
-			let data: any = await this.request(opts);
-			data = JSON.parse(data);
-			if(data?.title){
-				await idb.saveNoteTree(this.uid, data.uniqueId, data);
+			const res: any = await this.api.getNoteDoc(docId);
+			if (res?.title) {
+				await idb.saveNoteTree(this.uid, res.uniqueId, res);
 			}
 			return true;
 		} catch (e) {
@@ -286,11 +238,11 @@ export class Boox {
 				acc.push(cur.data);
 			}
 
-			return acc
-		}, [])
-		
+			return acc;
+		}, []);
+
 		notes = this.fotmatNotes(notes);
-		console.log('number of fotmated notes:', notes.length)
+		console.log("number of fotmated notes:", notes.length);
 
 		this.createNotes("BOOX", notes);
 	}
