@@ -198,15 +198,7 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	showLoading() {
-		this.loadingEl = createEl("div");
-		this.loadingEl.style.position = "absolute";
-		this.loadingEl.style.width = "100%";
-		this.loadingEl.style.height = "100%";
-		this.loadingEl.style.background = "rgba(0,0,0,0.3)";
-		this.loadingEl.style.zIndex = "100";
-		this.loadingEl.style.display = "flex";
-		this.loadingEl.style.justifyContent = "center";
-		this.loadingEl.style.alignItems = "center";
+		this.loadingEl = createEl("div", { cls: "noteRenderloading" });
 		this.loadingEl.createEl("div", { cls: "lds-dual-ring" });
 		this.containerEl.appendChild(this.loadingEl);
 
@@ -346,8 +338,6 @@ export class BooxNoteView extends TextFileView {
 		this.canvasContentEl = createEl("div", {
 			attr: { id: "noteContent", class: "noteContent" },
 		});
-		this.canvasContentEl.style.width = "100%";
-		this.canvasContentEl.style.height = "100%";
 
 		this.contentEl.appendChild(this.canvasContentEl);
 
@@ -356,14 +346,15 @@ export class BooxNoteView extends TextFileView {
 		let cHeight = canvasContentRect.height;
 
 		const childContentEl = createEl("div", { cls: "childContent" });
-		childContentEl.style.background = "white";
 		this.canvasContentEl.appendChild(childContentEl);
-
-		const canvasEl = createEl("canvas");
-		canvasEl.id = pageId;
-		canvasEl.style.background = "white";
-		canvasEl.width = cWidth;
-		canvasEl.height = cHeight;
+		const canvasEl = createEl("canvas", {
+			attr: {
+				class: "renderCanvas",
+				id: pageId,
+				width: cWidth,
+				height: cHeight,
+			},
+		});
 
 		let pageSize = this.note.notePageInfo
 			? this.note.notePageInfo.pageInfoMap[pageId]
@@ -388,9 +379,10 @@ export class BooxNoteView extends TextFileView {
 		cWidth = this.note.originWidth * scale;
 		cHeight = this.note.originHeight * scale;
 
-		childContentEl.style.width = cWidth + "px";
-		childContentEl.style.height = cHeight + "px";
-
+		childContentEl.setAttribute(
+			"style",
+			`width:${cWidth}px;height:${cHeight}px`
+		);
 		canvasEl.width = cWidth;
 		canvasEl.height = cHeight;
 		this.note.width = cWidth;
@@ -2664,15 +2656,14 @@ export class BooxNoteView extends TextFileView {
 					pageInput.blur();
 				}
 			};
-
-			pageInput.style.display = "flex";
+			pageInput.setAttribute("style", `display: flex`);
 			pageInput.select();
-			pageInfo.style.display = "none";
+			pageInput.setAttribute("style", `display: none`);
 		} else {
-			pageInput.style.display = "none";
+			pageInput.setAttribute("style", `display: none`);
 			pageInput.onblur = null;
 			pageInput.onkeydown = null;
-			pageInfo.style.display = "flex";
+			pageInput.setAttribute("style", `display: flex`);
 		}
 	}
 

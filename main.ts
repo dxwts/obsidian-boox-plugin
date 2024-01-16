@@ -92,8 +92,14 @@ export default class BooxPlugin extends Plugin {
 			const { action, data } = obj;
 			if (action === "syncState") {
 				if (this.loadingEl) {
-					this.loadingEl.style.display =
-						data === "CHANGED" ? "block" : "none";
+					this.loadingEl.classList.toggle(
+						"loading-show",
+						data === "CHANGED"
+					);
+					this.loadingEl.classList.toggle(
+						"loading-hide",
+						data !== "CHANGED"
+					);
 				}
 			} else if (action === "syncEnabled") {
 				if (data) {
@@ -161,18 +167,10 @@ export default class BooxPlugin extends Plugin {
 		const fileExplorer = this.app.workspace.containerEl.querySelector(
 			selector
 		) as HTMLElement;
-		this.loadingEl = createEl("img", { cls: "loading" });
-		this.loadingEl.src = loading;
-		this.loadingEl.width = 15;
-		this.loadingEl.height = 15;
-		this.loadingEl.style.position = "absolute";
-		this.loadingEl.style.right = "10px";
-		this.loadingEl.style.display = "none";
-		if (fileExplorer) {
-			fileExplorer.style.position = "relative";
-			fileExplorer.style.alignItems = "center";
-			fileExplorer.appendChild(this.loadingEl);
-		}
+		this.loadingEl = createEl("img", {
+			attr: { class: "loading", src: loading },
+		});
+		fileExplorer && fileExplorer.appendChild(this.loadingEl);
 	}
 
 	async removeLoading() {

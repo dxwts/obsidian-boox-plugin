@@ -73,7 +73,6 @@ export class BooxTextView extends TextFileView {
 
 	onunload(): void {
 		super.onunload();
-		// this.containerEl.style.backgroundColor = "";
 	}
 
 	async setViewData(data: string, clear: boolean): void {
@@ -94,7 +93,7 @@ export class BooxTextView extends TextFileView {
 	clear(): void {}
 
 	async setIframe() {
-		const iframe = createEl("iframe");
+		const iframe = createEl("iframe", { cls: "note-iframe" });
 
 		const pluginDir = this.plugin.app.vault.adapter.basePath;
 
@@ -151,10 +150,7 @@ export class BooxTextView extends TextFileView {
 				<div id="app"></div>
 			</body>
 		</html>`;
-		iframe.style.backgroundColor = "#f8f8f8";
-		iframe.style.width = "100%";
-		iframe.style.height = "100%";
-		iframe.style.border = "none";
+
 		this.contentEl.appendChild(iframe);
 	}
 
@@ -439,15 +435,7 @@ export class BooxTextView extends TextFileView {
 	}
 
 	showLoading() {
-		this.loadingEl = createEl("div");
-		this.loadingEl.style.position = "absolute";
-		this.loadingEl.style.width = "100%";
-		this.loadingEl.style.height = "100%";
-		this.loadingEl.style.background = "rgba(0,0,0,0.3)";
-		this.loadingEl.style.zIndex = "100";
-		this.loadingEl.style.display = "flex";
-		this.loadingEl.style.justifyContent = "center";
-		this.loadingEl.style.alignItems = "center";
+		this.loadingEl = createEl("div", { cls: "noteRenderloading" });
 		this.loadingEl.createEl("div", { cls: "lds-dual-ring" });
 		this.containerEl.appendChild(this.loadingEl);
 
