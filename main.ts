@@ -161,11 +161,10 @@ export default class BooxPlugin extends Plugin {
 		const fileExplorer = this.app.workspace.containerEl.querySelector(
 			selector
 		) as HTMLElement;
-		this.loadingEl = document.createElement("img");
+		this.loadingEl = createEl("img", { cls: "loading" });
 		this.loadingEl.src = loading;
 		this.loadingEl.width = 15;
 		this.loadingEl.height = 15;
-		this.loadingEl.addClass("loading");
 		this.loadingEl.style.position = "absolute";
 		this.loadingEl.style.right = "10px";
 		this.loadingEl.style.display = "none";

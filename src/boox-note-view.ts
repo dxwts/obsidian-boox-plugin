@@ -1,7 +1,7 @@
 import { TFile, TextFileView, WorkspaceLeaf } from "obsidian";
 import { fabric } from "fabric";
 import { Subject } from "rxjs";
-import _ from "lodash";
+import _, { create } from "lodash";
 import { LayerManager } from "@arch-inc/fabricjs-layer";
 
 import "src/fabric/fabric_utils";
@@ -198,7 +198,7 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	showLoading() {
-		this.loadingEl = document.createElement("div");
+		this.loadingEl = createEl("div");
 		this.loadingEl.style.position = "absolute";
 		this.loadingEl.style.width = "100%";
 		this.loadingEl.style.height = "100%";
@@ -343,9 +343,9 @@ export class BooxNoteView extends TextFileView {
 
 	async initPage(pageId: string) {
 		this.contentEl.empty();
-		this.canvasContentEl = document.createElement("div");
-		this.canvasContentEl.addClass("noteContent");
-		this.canvasContentEl.id = "noteContent";
+		this.canvasContentEl = createEl("div", {
+			attr: { id: "noteContent", class: "noteContent" },
+		});
 		this.canvasContentEl.style.width = "100%";
 		this.canvasContentEl.style.height = "100%";
 
@@ -355,12 +355,11 @@ export class BooxNoteView extends TextFileView {
 		let cWidth = canvasContentRect.width;
 		let cHeight = canvasContentRect.height;
 
-		const childContentEl = document.createElement("div");
+		const childContentEl = createEl("div", { cls: "childContent" });
 		childContentEl.style.background = "white";
-		childContentEl.addClass("childContent");
 		this.canvasContentEl.appendChild(childContentEl);
 
-		const canvasEl = document.createElement("canvas");
+		const canvasEl = createEl("canvas");
 		canvasEl.id = pageId;
 		canvasEl.style.background = "white";
 		canvasEl.width = cWidth;
@@ -1962,9 +1961,9 @@ export class BooxNoteView extends TextFileView {
 						? shape.meta.resource.relativePath.split(".").pop()
 						: shape.meta.resource.path.split(".").pop();
 					title = title + "." + fileExtension;
-					const element = document.createElement("a");
-					element.href = resUrl;
-					element.download = title;
+					const element = createEl("a", {
+						attr: { href: resUrl, download: title },
+					});
 					element.click();
 				});
 
@@ -2505,9 +2504,9 @@ export class BooxNoteView extends TextFileView {
 			group.shape = shape.meta;
 			group.on("mousedblclick", async (e) => {
 				// const url = await getResUrlV2(shape)
-				const element = document.createElement("a");
-				element.href = resUrl;
-				element.download = filename;
+				const element = createEl("a", {
+					attr: { href: resUrl, download: filename },
+				});
 				element.click();
 			});
 			// group = setMetadata(group, shape)
@@ -2678,8 +2677,7 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	createMenuBtn() {
-		const menu = document.createElement("div");
-		menu.className = "note-menu";
+		const menu = createEl("div", { cls: "note-menu" });
 
 		const rightBtnWrap = this.createRightBtn();
 		const pageBtnWrap = this.createPageBtn();
@@ -2691,12 +2689,10 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	createRightBtn() {
-		const rightBtnWrap = document.createElement("div");
-		rightBtnWrap.className = "note-rightBtnWrap";
+		const rightBtnWrap = createEl("div", { cls: "note-rightBtnWrap" });
 		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)));
 
-		const reSyncBtn = document.createElement("div");
-		reSyncBtn.className = "note-global-btn";
+		const reSyncBtn = createEl("div", { cls: "note-global-btn" });
 		reSyncBtn.createEl("img", {
 			attr: { src: `data:image/svg+xml;base64, ${syncIcon}` },
 		});
@@ -2711,11 +2707,9 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	createPageBtn() {
-		const pageBtnWrap = document.createElement("div");
-		pageBtnWrap.className = "note-pageBtnWrap";
+		const pageBtnWrap = createEl("div", { cls: "note-pageBtnWrap" });
 
-		const prevBtn = document.createElement("div");
-		prevBtn.className = "note-global-btn";
+		const prevBtn = createEl("div", { cls: "note-global-btn" });
 		prevBtn.createEl("img", {
 			attr: { src: `data:image/svg+xml;base64, ${btoa(ICON_PREV)}` },
 		});
@@ -2723,8 +2717,7 @@ export class BooxNoteView extends TextFileView {
 			this.prevPage();
 		};
 
-		const nextBtn = document.createElement("div");
-		nextBtn.className = "note-global-btn";
+		const nextBtn = createEl("div", { cls: "note-global-btn" });
 		nextBtn.createEl("img", {
 			attr: { src: `data:image/svg+xml;base64, ${btoa(ICON_NEXT)}` },
 		});
@@ -2732,11 +2725,8 @@ export class BooxNoteView extends TextFileView {
 			this.nextPage();
 		};
 
-		const pageCtx = document.createElement("div");
-		pageCtx.className = "pageBtnWrap-ctx";
-
-		const pageInfo = document.createElement("div");
-		pageInfo.className = "pageBtnWrap-page-info";
+		const pageCtx = createEl("div", { cls: "pageBtnWrap-ctx" });
+		const pageInfo = createEl("div", { cls: "pageBtnWrap-page-info" });
 		pageInfo.createEl("div", {
 			cls: ["pageBtnWrap-page-item", "pageBtnWrap-currentPage"],
 			text: this.pageState.currentPage,
@@ -2754,11 +2744,14 @@ export class BooxNoteView extends TextFileView {
 			this.showPageInput();
 		};
 
-		const pageInput = document.createElement("input");
-		pageInput.className = "pageBtnWrap-input";
-		pageInput.type = "number";
-		pageInput.id = "menuPageInput";
-		pageInput.value = this.pageState.currentPage;
+		const pageInput = createEl("input", {
+			attr: {
+				type: "number",
+				id: "menuPageInput",
+				class: "pageBtnWrap-input",
+				value: this.pageState.currentPage,
+			},
+		});
 
 		pageCtx?.appendChild(pageInfo);
 		pageCtx?.appendChild(pageInput);

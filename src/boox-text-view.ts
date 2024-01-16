@@ -6,7 +6,7 @@ import idb from "src/idb";
 import OssUtil from "src/oss-util";
 import SyncUtil from "src/sync-util";
 import { Subject } from "rxjs";
-import _ from "lodash";
+import _, { create } from "lodash";
 import { shapeTypes, ICON_NOTE_SYNC } from "src/constants";
 
 export const BOOX_TEXT_VIEW_TYPE = "boox-text-view";
@@ -94,7 +94,7 @@ export class BooxTextView extends TextFileView {
 	clear(): void {}
 
 	async setIframe() {
-		const iframe = document.createElement("iframe");
+		const iframe = createEl("iframe");
 
 		const pluginDir = this.plugin.app.vault.adapter.basePath;
 
@@ -439,7 +439,7 @@ export class BooxTextView extends TextFileView {
 	}
 
 	showLoading() {
-		this.loadingEl = document.createElement("div");
+		this.loadingEl = createEl("div");
 		this.loadingEl.style.position = "absolute";
 		this.loadingEl.style.width = "100%";
 		this.loadingEl.style.height = "100%";
@@ -462,8 +462,7 @@ export class BooxTextView extends TextFileView {
 	}
 
 	createMenuBtn() {
-		const menu = document.createElement("div");
-		menu.className = "note-menu";
+		const menu = createEl("div", { cls: "note-menu" });
 
 		const rightBtnWrap = this.createRightBtn();
 
@@ -473,12 +472,10 @@ export class BooxTextView extends TextFileView {
 	}
 
 	createRightBtn() {
-		const rightBtnWrap = document.createElement("div");
-		rightBtnWrap.className = "note-rightBtnWrap";
+		const rightBtnWrap = createEl("div", { cls: "note-rightBtnWrap" });
 		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)));
 
-		const reSyncBtn = document.createElement("div");
-		reSyncBtn.className = "note-global-btn";
+		const reSyncBtn = createEl("div", { cls: "note-global-btn" });
 		reSyncBtn.createEl("img", {
 			attr: { src: `data:image/svg+xml;base64, ${syncIcon}` },
 		});
