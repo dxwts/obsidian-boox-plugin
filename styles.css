@@ -104,7 +104,7 @@ If your plugin does not need CSS, delete this file.
 }
 
 .note-iframe {
-	background-color: "#f8f8f8";
+	background-color: #f8f8f8;
 	width: 100%;
 	height: 100%;
 	border: none;

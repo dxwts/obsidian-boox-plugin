@@ -477,7 +477,10 @@ export class BooxNoteView extends TextFileView {
 							}
 						);
 					} else {
-						const bgObj = fabric.util.groupSVGElements(objs, opts);
+						const bgObj: any = fabric.util.groupSVGElements(
+							objs,
+							opts
+						);
 						bgObj.set({
 							left: 0,
 							top: 0,
@@ -500,7 +503,7 @@ export class BooxNoteView extends TextFileView {
 				// pdf背景模版
 				fabric.Image.fromURL(
 					obj.url,
-					(img) => {
+					(img: any) => {
 						const opts = {
 							left: 0,
 							top: 0,
@@ -1379,7 +1382,7 @@ export class BooxNoteView extends TextFileView {
 		const len = pointData.length;
 		const points = [];
 		for (let i = 0; i < len; i += pointDataLen) {
-			const point = {};
+			const point: any = {};
 			point.x = pointData[i + 0];
 			point.y = pointData[i + 1];
 			point.size = pointData[i + 2];
@@ -2569,7 +2572,7 @@ export class BooxNoteView extends TextFileView {
 			rect = this.setMetadata(rect, shape);
 			rects.push(rect);
 		}
-		const group = new fabric.Group(rects);
+		const group: any = new fabric.Group(rects);
 		group.url = group.toDataURL();
 		group.shapeData = shapeData;
 		group.shape = shape.meta;
@@ -2578,20 +2581,26 @@ export class BooxNoteView extends TextFileView {
 
 	prevPage() {
 		if (this.pageState.currentPage > 1) {
-			this.pageState.currentPage--;
-			this.goToPage(this.pageState.currentPage);
+			let page = this.pageState.currentPage;
+			page--;
+			this.goToPage(page);
 		}
 	}
 
 	nextPage() {
 		if (this.pageState.currentPage < this.pageState.totalPage) {
-			this.pageState.currentPage++;
-			this.goToPage(this.pageState.currentPage);
+			let page = this.pageState.currentPage;
+			page++;
+			this.goToPage(page);
 		}
 	}
 
 	async goToPage(page: number) {
-		if (page < 1 || page > this.pageState.totalPage) {
+		if (
+			page < 1 ||
+			page > this.pageState.totalPage ||
+			page === this.pageState.currentPage
+		) {
 			return;
 		}
 		this.pageState.currentPage = page;
@@ -2611,9 +2620,9 @@ export class BooxNoteView extends TextFileView {
 		);
 		const totalPage: any = document.querySelector(".pageBtnWrap-total");
 		const pageInput: any = document.querySelector(".pageBtnWrap-input");
-		pageInput.value = this.pageState.currentPage;
-		currentPage.textContent = this.pageState.currentPage;
-		totalPage.textContent = this.pageState.totalPage;
+		pageInput && (pageInput.value = this.pageState.currentPage);
+		currentPage && (currentPage.textContent = this.pageState.currentPage);
+		totalPage && (totalPage.textContent = this.pageState.totalPage);
 	}
 
 	showPageInput() {
@@ -2644,12 +2653,12 @@ export class BooxNoteView extends TextFileView {
 			};
 			pageInput.setAttribute("style", `display: flex`);
 			pageInput.select();
-			pageInput.setAttribute("style", `display: none`);
+			pageInfo.setAttribute("style", `display: none`);
 		} else {
 			pageInput.setAttribute("style", `display: none`);
 			pageInput.onblur = null;
 			pageInput.onkeydown = null;
-			pageInput.setAttribute("style", `display: flex`);
+			pageInfo.setAttribute("style", `display: flex`);
 		}
 	}
 
