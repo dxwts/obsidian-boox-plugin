@@ -26,8 +26,7 @@ const DEFAULT_SETTINGS: BooxPluginSettings = {
 	uid: "",
 	token: "",
 	syncToken: "",
-	// server: "https://send2boox.com",
-	server: "https://dev.send2boox.com",
+	server: "https://send2boox.com",
 	syncEnabled: false,
 };
 

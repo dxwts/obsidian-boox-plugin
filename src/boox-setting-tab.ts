@@ -34,10 +34,6 @@ export class BooxSettingTab extends PluginSettingTab {
 			.setDesc("请选择服务器")
 			.addDropdown((dropdown) => {
 				dropdown
-					.addOption(
-						"https://dev.send2boox.com",
-						"https://dev.send2boox.com"
-					)
 					.addOption("https://send2boox.com", "https://send2boox.com")
 					.addOption("https://push.boox.com", "https://push.boox.com")
 					.addOption("https://eur.boox.com", "https://eur.boox.com")
