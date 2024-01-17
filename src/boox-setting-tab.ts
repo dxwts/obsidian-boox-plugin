@@ -44,6 +44,7 @@ export class BooxSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.server)
 					.onChange(async (value) => {
 						this.plugin.settings.server = value;
+						this.plugin.boox.doAction("changeService", value);
 						await this.plugin.saveSettings();
 					});
 			});

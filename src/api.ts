@@ -1,5 +1,5 @@
 import BooxPlugin from "main";
-import { requestUrl } from "obsidian";
+import { requestUrl, Notice } from "obsidian";
 import idb from "src/idb";
 
 export default class Api {
@@ -40,10 +40,14 @@ export default class Api {
 	}
 
 	async getToken(params?: any) {
-		params = this.setInterceptor(params);
-		params.url = `${this.getBaseUrl()}/users/getTokenByAccessToken`;
-		const res = await requestUrl(params);
-		return res.json;
+		try {
+			params = this.setInterceptor(params);
+			params.url = `${this.getBaseUrl()}/users/getTokenByAccessToken`;
+			const res = await requestUrl(params);
+			return res.json;
+		} catch (error) {
+			new Notice("Access Token不正确", 3000);
+		}
 	}
 
 	async getStsToken(params?: any) {

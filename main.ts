@@ -34,6 +34,7 @@ const DEFAULT_SETTINGS: BooxPluginSettings = {
 export default class BooxPlugin extends Plugin {
 	settings: BooxPluginSettings;
 	boox: Boox;
+	ossUtil: OssUtil;
 	loadingEl: any;
 	intervalTask: number;
 	async onunload() {
@@ -50,26 +51,21 @@ export default class BooxPlugin extends Plugin {
 		addIcon("boox", ICON_LOGO);
 		await this.loadSettings();
 
-		Api.getInstance(this).setInterceptor(this);
+		Api.getInstance(this);
 		this.boox = new Boox(this.app, this);
-		OssUtil.getInstance(this).init();
+		this.ossUtil = OssUtil.getInstance(this);
+		this.ossUtil.init();
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"boox",
 			"BOOX",
-			async (evt: MouseEvent) => {
+			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
 				if (this.settings.token) {
 					this.boox.doAction("checkNoteTreeCreated", "");
 					return new Notice("用户已登录", 3000);
 				}
-				const userInfo = await this.boox.getUserInfo();
-				if (userInfo) {
-					this.settings.uid = userInfo.uid;
-					this.settings.token = userInfo.token;
-					this.settings.syncToken = userInfo.syncToken;
-					this.saveSettings();
-				}
+				this.getUserInfo();
 			}
 		);
 		ribbonIconEl.addClass("boox-plugin-ribbon-class");
@@ -101,11 +97,14 @@ export default class BooxPlugin extends Plugin {
 				}
 			} else if (action === "syncEnabled") {
 				if (data) {
+					await this.getUserInfo();
 					await this.initDataDir();
 					this.setIntervalTask();
 				} else {
 					this.clearIntervals();
 				}
+			} else if (action === "changeService") {
+				await this.changeService();
 			}
 		});
 
@@ -121,11 +120,26 @@ export default class BooxPlugin extends Plugin {
 		this.vaultOnEvent();
 	}
 
+	async changeService() {
+		this.ossUtil.oss = null;
+		await this.ossUtil.init();
+	}
+
 	async initDataDir() {
 		await this.setDataDir();
 		setTimeout(() => {
 			this.createLoading();
 		}, 500);
+	}
+
+	async getUserInfo() {
+		const userInfo = await this.boox.getUserInfo();
+		if (userInfo) {
+			this.settings.uid = userInfo.uid;
+			this.settings.token = userInfo.token;
+			this.settings.syncToken = userInfo.syncToken;
+			this.saveSettings();
+		}
 	}
 
 	async loadSettings() {
