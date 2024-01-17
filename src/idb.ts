@@ -4,7 +4,7 @@ export default {
 	getShapeDB(name: string, ver = 1) {
 		const db = new Dexie(name);
 		db.version(ver).stores({
-			shape: '&_id, magicWord, fileVersion, pageUniqueId, shapeType, revisionId, shape, updatedAt',
+			shape: "&_id, magicWord, fileVersion, pageUniqueId, shapeType, revisionId, shape, updatedAt",
 		});
 		return db;
 	},
@@ -101,7 +101,7 @@ export default {
 			const res = await tab.put(data);
 			return res;
 		} catch (error) {
-			console.error(error);
+			throw new Error(error);
 		}
 	},
 
@@ -114,7 +114,7 @@ export default {
 			};
 			await db.resource.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -124,7 +124,7 @@ export default {
 			const resource = await db.resource.get(id);
 			return resource;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -158,7 +158,7 @@ export default {
 			};
 			await db.settings.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -167,7 +167,7 @@ export default {
 			const db = this.getSettingDB(uid);
 			await db.settings.delete(id);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -177,7 +177,7 @@ export default {
 			const settings = await db.settings.get(id);
 			return settings;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -202,7 +202,7 @@ export default {
 			};
 			await db.note.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -212,7 +212,7 @@ export default {
 			const note = await db.note.get(id);
 			return note;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -226,7 +226,7 @@ export default {
 			};
 			await db.note.update(id, res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -239,7 +239,7 @@ export default {
 			};
 			await db.note.update(id, res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -252,18 +252,17 @@ export default {
 			};
 			await db.note.update(id, res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
 	async getUnCreatedNoteTree(uid: string) {
 		try {
 			const db = this.getNoteTreeDB(uid);
-			console.log("NoteTreeDB: ", db);
 			const note = await db.note.where({ isCreated: 0 }).toArray();
 			return note;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -272,7 +271,7 @@ export default {
 			const db = this.getCacheDB();
 			note = await db.note.put(note);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -282,7 +281,7 @@ export default {
 			const note = await db.note.get(id);
 			return note;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -291,7 +290,7 @@ export default {
 			const db = this.getCacheDB();
 			page = await db.page.put(page);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
@@ -301,14 +300,13 @@ export default {
 			const page = await db.page.get(id);
 			return page;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	},
 
 	async deleteDB(name: string) {
 		return Dexie.delete(name);
 	},
-	
 
 	async DbIsExists(name: string) {
 		const res = await Dexie.exists(name);

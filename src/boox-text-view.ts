@@ -6,7 +6,7 @@ import idb from "src/idb";
 import OssUtil from "src/oss-util";
 import SyncUtil from "src/sync-util";
 import { Subject } from "rxjs";
-import _ from "lodash";
+import _, { create } from "lodash";
 import { shapeTypes, ICON_NOTE_SYNC } from "src/constants";
 
 export const BOOX_TEXT_VIEW_TYPE = "boox-text-view";
@@ -66,14 +66,12 @@ export class BooxTextView extends TextFileView {
 	}
 
 	onload(): void {
-		console.log("loading boox plugin: ", this.plugin.manifest);
 		super.onload();
 		this.createMenuBtn();
 	}
 
 	onunload(): void {
 		super.onunload();
-		// this.containerEl.style.backgroundColor = "";
 	}
 
 	async setViewData(data: string, clear: boolean): void {
@@ -94,8 +92,8 @@ export class BooxTextView extends TextFileView {
 	clear(): void {}
 
 	async setIframe() {
-		const iframe = document.createElement("iframe");
-		
+		const iframe = createEl("iframe", { cls: "note-iframe" });
+
 		const pluginDir = this.plugin.app.vault.adapter.basePath;
 
 		if (!pluginDir) {
@@ -131,7 +129,6 @@ export class BooxTextView extends TextFileView {
 		// const cssBlobUrl = URL.createObjectURL(cssBlob);
 
 		iframe.addEventListener("load", () => {
-			console.log("iframe loaded");
 			// @ts-ignore
 			this.tiptap = iframe.contentWindow.TipTap;
 			this.tiptap.setEditable(false);
@@ -151,10 +148,7 @@ export class BooxTextView extends TextFileView {
 				<div id="app"></div>
 			</body>
 		</html>`;
-		iframe.style.backgroundColor = "#f8f8f8";
-		iframe.style.width = "100%";
-		iframe.style.height = "100%";
-		iframe.style.border = "none";
+
 		this.contentEl.appendChild(iframe);
 	}
 
@@ -171,9 +165,9 @@ export class BooxTextView extends TextFileView {
 	async loadData(note: any) {
 		try {
 			this.hideLoading();
-			this.contentEl.innerHTML = "";
+			this.contentEl.empty();
 			this.pageId = note.richTextPageNameList?.pageNameList[0] || null;
-			if(!this.pageId) {
+			if (!this.pageId) {
 				return;
 			}
 			this.setIframe();
@@ -182,24 +176,24 @@ export class BooxTextView extends TextFileView {
 			await this.syncNoteData(note);
 			this.note.shapes = await this.loadShapes();
 			await this.renderPage(this.pageId);
-			this.tiptap.setOnyxImgEditable(false)
+			this.tiptap.setOnyxImgEditable(false);
 
 			setTimeout(() => {
 				this.hideLoading();
 			}, 500);
 		} catch (error) {
-			this.contentEl.innerHTML = "";
+			this.contentEl.empty();
 			this.hideLoading();
 		}
 	}
 
 	async loadShapes() {
 		try {
-			const db:any = await idb.getShapeDB(this.shapeDbName);
+			const db: any = await idb.getShapeDB(this.shapeDbName);
 			const shapes = await db.shape.toArray();
-			return shapes || []
+			return shapes || [];
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 		return [];
 	}
@@ -215,7 +209,7 @@ export class BooxTextView extends TextFileView {
 			this.tiptap.setEditable(false);
 			this.setRecordingList(this.shape);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -347,7 +341,7 @@ export class BooxTextView extends TextFileView {
 			};
 			await db.resource.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -421,29 +415,26 @@ export class BooxTextView extends TextFileView {
 	}
 
 	async deleteNoteLocalDatabase() {
-		await idb.deleteDB(this.shapeDbName)
-		await idb.deleteDB(this.shapeDataDbName)
-		await idb.deleteDB(`${this.shapeDbName}_resource`)
-		await idb.deleteDB(`_tmp_${this.shapeDbName}`)
-		await idb.deleteDB(`_tmp_${this.shapeDataDbName}`)
+		await idb.deleteDB(this.shapeDbName);
+		await idb.deleteDB(this.shapeDataDbName);
+		await idb.deleteDB(`${this.shapeDbName}_resource`);
+		await idb.deleteDB(`_tmp_${this.shapeDbName}`);
+		await idb.deleteDB(`_tmp_${this.shapeDataDbName}`);
 
-		const db:any = idb.getPBFileDB()
-		const records = await db.resource.where('documentUniqueId').equals(this.note.uniqueId).toArray()
-		const deletes = records.map((record: any) => db.resource.delete(record.id))
-		await Promise.all(deletes)
+		const db: any = idb.getPBFileDB();
+		const records = await db.resource
+			.where("documentUniqueId")
+			.equals(this.note.uniqueId)
+			.toArray();
+		const deletes = records.map((record: any) =>
+			db.resource.delete(record.id)
+		);
+		await Promise.all(deletes);
 	}
 
 	showLoading() {
-		this.loadingEl = document.createElement("div");
-		this.loadingEl.style.position = "absolute";
-		this.loadingEl.style.width = "100%";
-		this.loadingEl.style.height = "100%";
-		this.loadingEl.style.background = "rgba(0,0,0,0.3)";
-		this.loadingEl.style.zIndex = "100";
-		this.loadingEl.style.display = "flex";
-		this.loadingEl.style.justifyContent = "center";
-		this.loadingEl.style.alignItems = "center";
-		this.loadingEl.innerHTML = `<div class="lds-dual-ring"></div>`;
+		this.loadingEl = createEl("div", { cls: "noteRenderloading" });
+		this.loadingEl.createEl("div", { cls: "lds-dual-ring" });
 		this.containerEl.appendChild(this.loadingEl);
 
 		// setTimeout(() => {
@@ -457,32 +448,30 @@ export class BooxTextView extends TextFileView {
 	}
 
 	createMenuBtn() {
-		
-		const menu = document.createElement("div");
-		menu.className = "note-menu";
+		const menu = createEl("div", { cls: "note-menu" });
 
-		const rightBtnWrap = this.createRightBtn()
+		const rightBtnWrap = this.createRightBtn();
 
-		menu.appendChild(rightBtnWrap)
+		menu.appendChild(rightBtnWrap);
 
 		this.containerEl.appendChild(menu);
 	}
 
 	createRightBtn() {
-		const rightBtnWrap = document.createElement("div")
-		rightBtnWrap.className = "note-rightBtnWrap"
-		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)))
+		const rightBtnWrap = createEl("div", { cls: "note-rightBtnWrap" });
+		const syncIcon = btoa(unescape(encodeURIComponent(ICON_NOTE_SYNC)));
 
-		const reSyncBtn = document.createElement("div");
-		reSyncBtn.className = "note-global-btn";
-		reSyncBtn.innerHTML = `<img src="data:image/svg+xml;base64, ${syncIcon}">`;
+		const reSyncBtn = createEl("div", { cls: "note-global-btn" });
+		reSyncBtn.createEl("img", {
+			attr: { src: `data:image/svg+xml;base64, ${syncIcon}` },
+		});
 		reSyncBtn.onclick = async () => {
-			await this.deleteNoteLocalDatabase()
-			this.loadData(this.note)
+			await this.deleteNoteLocalDatabase();
+			this.loadData(this.note);
 		};
 
 		rightBtnWrap.appendChild(reSyncBtn);
 
-		return rightBtnWrap
+		return rightBtnWrap;
 	}
 }

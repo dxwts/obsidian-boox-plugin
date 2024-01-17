@@ -29,13 +29,11 @@
 	"dependencies": {
 		"@arch-inc/fabricjs-layer": "github:dxwts/fabricjs-layer#main",
 		"ali-oss": "^6.18.0",
-		"axios": "^1.5.0",
 		"dexie": "^3.2.4",
 		"fabric": "^5.3.0",
 		"fs-extra": "^11.1.1",
 		"jszip": "^3.10.1",
 		"lodash": "^4.17.21",
-		"pouchdb": "^8.0.1",
 		"protobufjs": "^7.2.5",
 		"rxjs": "^7.8.1"
 	}

@@ -40,6 +40,7 @@ export class BooxSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.server)
 					.onChange(async (value) => {
 						this.plugin.settings.server = value;
+						this.plugin.boox.doAction("changeService", value);
 						await this.plugin.saveSettings();
 					});
 			});
@@ -52,8 +53,13 @@ export class BooxSettingTab extends PluginSettingTab {
 				toggle
 					.setValue(this.plugin.settings.syncEnabled)
 					.onChange(async (value) => {
-						value ? this.plugin.boox.doAction('syncState', 'CHANGED') : this.plugin.boox.doAction('syncState', 'UNCHANGED')
-						this.plugin.boox.doAction('syncEnabled', value)
+						value
+							? this.plugin.boox.doAction("syncState", "CHANGED")
+							: this.plugin.boox.doAction(
+									"syncState",
+									"UNCHANGED"
+							  );
+						this.plugin.boox.doAction("syncEnabled", value);
 						this.plugin.settings.syncEnabled = value;
 						await this.plugin.saveSettings();
 					});

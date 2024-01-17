@@ -75,7 +75,6 @@ export function parseShapeData(data: any) {
 		point.pressure = view.getInt16(10);
 		point.event_time = view.getInt32(12);
 		points.push(point);
-		// console.log(`point: `, point)
 	}
 	return points;
 }
