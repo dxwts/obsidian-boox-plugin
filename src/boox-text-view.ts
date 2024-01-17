@@ -66,7 +66,6 @@ export class BooxTextView extends TextFileView {
 	}
 
 	onload(): void {
-		console.log("loading boox plugin: ", this.plugin.manifest);
 		super.onload();
 		this.createMenuBtn();
 	}
@@ -130,7 +129,6 @@ export class BooxTextView extends TextFileView {
 		// const cssBlobUrl = URL.createObjectURL(cssBlob);
 
 		iframe.addEventListener("load", () => {
-			console.log("iframe loaded");
 			// @ts-ignore
 			this.tiptap = iframe.contentWindow.TipTap;
 			this.tiptap.setEditable(false);
@@ -195,7 +193,7 @@ export class BooxTextView extends TextFileView {
 			const shapes = await db.shape.toArray();
 			return shapes || [];
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 		return [];
 	}
@@ -211,7 +209,7 @@ export class BooxTextView extends TextFileView {
 			this.tiptap.setEditable(false);
 			this.setRecordingList(this.shape);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -343,7 +341,7 @@ export class BooxTextView extends TextFileView {
 			};
 			await db.resource.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 

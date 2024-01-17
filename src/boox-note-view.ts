@@ -322,9 +322,7 @@ export class BooxNoteView extends TextFileView {
 			onLayerActivated(e: any) {
 				this.canvas.activeLayer = e.layer;
 			},
-			onLayerRemove(e: any) {
-				console.log("remove layer: ", e.layer);
-			},
+			onLayerRemove(e: any) {},
 		};
 		this.layerManager.addListener(listener);
 		const layerList = this.pageInfo.layerList;
@@ -755,7 +753,6 @@ export class BooxNoteView extends TextFileView {
 			}
 			return res;
 		} catch (error) {
-			console.log("=== error: ", error);
 			return null;
 		}
 	}
@@ -839,7 +836,7 @@ export class BooxNoteView extends TextFileView {
 			};
 			await db.resource.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -1022,7 +1019,7 @@ export class BooxNoteView extends TextFileView {
 
 			return shapes || [];
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 		return [];
 	}
@@ -1032,14 +1029,11 @@ export class BooxNoteView extends TextFileView {
 			return item.pageUniqueId === id;
 		});
 
-		console.log("======== shapes count: ", shapesAttr.length);
-
 		await this.getPagePointData(shapesAttr);
 		await this.getResource(id);
 
 		const db: any = idb.getPointDB(this.shapeDataDbName);
 		let shapes = await db.point.where("pageUniqueId").equals(id).toArray();
-		console.log("======== shapes data count: ", shapes.length);
 		shapesAttr = _.groupBy(shapesAttr, "_id");
 		shapes = shapes.map((shape: any) => {
 			let attr = shapesAttr[shape.id];
@@ -1085,7 +1079,6 @@ export class BooxNoteView extends TextFileView {
 				shapes = tmpShapes;
 			}
 		}
-		console.log("======== render shapes count: ", shapes.length);
 		return shapes;
 	}
 
@@ -1096,11 +1089,8 @@ export class BooxNoteView extends TextFileView {
 			.equals(id)
 			.toArray();
 
-		console.log("======== tmp shapes count: ", shapesAttr.length);
-
 		const db: any = idb.getTmpShapeDataDB(this.shapeDataDbName);
 		let shapes = await db.shape.where("pageUniqueId").equals(id).toArray();
-		console.log("======== tmp shapes data count: ", shapes.length);
 		shapes = shapes.map((shape: any) => {
 			const attr = shapesAttr.find((item: any) => {
 				return item._id === shape.id;
@@ -1113,7 +1103,6 @@ export class BooxNoteView extends TextFileView {
 		});
 		shapes = _.compact(shapes);
 		shapes = _.orderBy(shapes, ["meta.createdAt"], ["asc"]);
-		console.log("======== render tmp shapes count: ", shapes.length);
 		return {
 			shapes: shapes,
 			shapesAttr: shapesAttr,
@@ -1204,7 +1193,6 @@ export class BooxNoteView extends TextFileView {
 				const points = Parse.parsePoints(data.content);
 				await this.savePoints(points);
 			} catch (error) {
-				console.log(error);
 				continue;
 			}
 		}
@@ -1224,7 +1212,7 @@ export class BooxNoteView extends TextFileView {
 			const count = await db.point.where("id").equals(uniqueId).count();
 			return !!count;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -1253,7 +1241,7 @@ export class BooxNoteView extends TextFileView {
 			const db: any = idb.getPointDB(this.shapeDataDbName);
 			await db.point.bulkPut(shapes);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -1452,7 +1440,6 @@ export class BooxNoteView extends TextFileView {
 			outPointsPtr,
 			outCountPtr
 		);
-		// console.log('=== wasm ret: ', ret)
 		if (ret === -1) {
 			wasm._free(pointsPtr);
 			wasm._free(outPointsPtr);
@@ -1484,7 +1471,7 @@ export class BooxNoteView extends TextFileView {
 				// outData = new Float64Array(pointData.buffer)
 			}
 		} catch (error) {
-			console.log("===== err: ", error);
+			throw new Error(error);
 			// outData = new Float64Array(pointData.buffer)
 		}
 
@@ -1632,7 +1619,7 @@ export class BooxNoteView extends TextFileView {
 			shape.points = points;
 			return shape;
 		} catch (error) {
-			console.log("==== ", error);
+			throw new Error(error);
 		}
 		return null;
 	}
@@ -1966,7 +1953,7 @@ export class BooxNoteView extends TextFileView {
 				group.src = resUrl;
 				resolve(group);
 			} catch (error) {
-				console.log(error, "error");
+				throw new Error(error);
 			}
 		});
 	}
@@ -2177,7 +2164,7 @@ export class BooxNoteView extends TextFileView {
 			};
 			await db.resource.put(res);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -2597,7 +2584,6 @@ export class BooxNoteView extends TextFileView {
 	}
 
 	nextPage() {
-		console.log("=== next page");
 		if (this.pageState.currentPage < this.pageState.totalPage) {
 			this.pageState.currentPage++;
 			this.goToPage(this.pageState.currentPage);

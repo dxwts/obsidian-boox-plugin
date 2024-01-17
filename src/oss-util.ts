@@ -95,9 +95,9 @@ export default class OssUtil {
 	async headFile(key: string) {
 		try {
 			const res = await this.oss.head(key);
-			return res && res.status === 200 ? true : false
+			return res && res.status === 200 ? true : false;
 		} catch (error) {
-			return false
+			return false;
 		}
 	}
 
@@ -106,8 +106,7 @@ export default class OssUtil {
 			const res = await this.oss.signatureUrl(key);
 			return res;
 		} catch (error) {
-			console.log(error);
+			return null;
 		}
-		return null;
 	}
 }

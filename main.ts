@@ -61,11 +61,9 @@ export default class BooxPlugin extends Plugin {
 				// Called when the user clicks the icon.
 				if (this.settings.token) {
 					this.boox.doAction("checkNoteTreeCreated", "");
-
 					return new Notice("用户已登录", 3000);
 				}
 				const userInfo = await this.boox.getUserInfo();
-				console.log("userInfo: ", userInfo);
 				if (userInfo) {
 					this.settings.uid = userInfo.uid;
 					this.settings.token = userInfo.token;
@@ -188,7 +186,6 @@ export default class BooxPlugin extends Plugin {
 	setIntervalTask() {
 		this.registerInterval(
 			(this.intervalTask = window.setInterval(async () => {
-				console.log("---------------setIntervalTask----------------");
 				await this.boox.doAction("getChanges", "");
 			}, 5 * 1000))
 		);

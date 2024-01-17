@@ -28,7 +28,6 @@ export function generateCharcoal(points: any) {
 			resolve(res);
 		};
 		img.onerror = function () {
-			console.log("=== error url: ", url);
 			reject("load image error");
 		};
 		img.src = url;
@@ -81,26 +80,26 @@ export function getPolygonPointF(
 	radius: number,
 	sideAngle: any,
 	index: number
-  ) {
-	const tmpX = sin(radius, sideAngle * index)
-	const tmpY = cos(radius, sideAngle * index)
+) {
+	const tmpX = sin(radius, sideAngle * index);
+	const tmpY = cos(radius, sideAngle * index);
 	return {
 		x: tmpX + centerPoint.x,
-		y: -tmpY + centerPoint.y
-	}
-  }
-  
-  export function sin (radius: number, angle: number) {
-	return Math.sin(angleToRadian(angle)) * radius
-  }
-  
-  export function cos (radius: number, angle: number) {
-	return Math.cos(angleToRadian(angle)) * radius
-  }
-  
-  export function angleToRadian (angle: number) {
-	return (angle * Math.PI) / 180
-  }
+		y: -tmpY + centerPoint.y,
+	};
+}
+
+export function sin(radius: number, angle: number) {
+	return Math.sin(angleToRadian(angle)) * radius;
+}
+
+export function cos(radius: number, angle: number) {
+	return Math.cos(angleToRadian(angle)) * radius;
+}
+
+export function angleToRadian(angle: number) {
+	return (angle * Math.PI) / 180;
+}
 
 // export function calculateTrianglePoints(downPoint, upPoint) {
 // 	const topPoint = {
@@ -119,9 +118,9 @@ export function getPolygonPointF(
 // }
 
 export function calculateTrianglePoints(downPoint, upPoint) {
-	const points = []
-	points.push({ x: downPoint.x, y: downPoint.y })
-	points.push({ x: upPoint.x, y: upPoint.y })
-	points.push({ x: Math.abs(2 * downPoint.x - upPoint.x), y: upPoint.y })
-	return points
+	const points = [];
+	points.push({ x: downPoint.x, y: downPoint.y });
+	points.push({ x: upPoint.x, y: upPoint.y });
+	points.push({ x: Math.abs(2 * downPoint.x - upPoint.x), y: upPoint.y });
+	return points;
 }

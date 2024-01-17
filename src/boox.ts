@@ -32,7 +32,6 @@ export class Boox {
 			try {
 				await this.app.vault.createFolder(folder);
 			} catch (error) {
-				console.log(error);
 				return false;
 			}
 		}
@@ -48,7 +47,7 @@ export class Boox {
 				await this.app.vault.create(note.path, note.content);
 				return true;
 			} catch (error) {
-				console.log(error);
+				throw new Error(error);
 			}
 		}
 
@@ -108,7 +107,7 @@ export class Boox {
 				try {
 					await idb.updateCreatedNoteTree(this.uid, item.uniqueId, 1);
 				} catch (error) {
-					console.log(error);
+					throw new Error(error);
 				}
 			}
 		}
@@ -132,7 +131,7 @@ export class Boox {
 				syncToken: syncTokenRes.data.session_id,
 			};
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -150,7 +149,7 @@ export class Boox {
 		try {
 			await idb.saveSettings(this.uid, "last_seq", lastSeq);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -191,7 +190,7 @@ export class Boox {
 
 			return res;
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -210,7 +209,7 @@ export class Boox {
 				this.checkNoteTreeCreated();
 			}, 1000);
 		} catch (error) {
-			console.log(error);
+			throw new Error(error);
 		}
 	}
 
@@ -242,7 +241,6 @@ export class Boox {
 		}, []);
 
 		notes = this.fotmatNotes(notes);
-		console.log("number of fotmated notes:", notes.length);
 
 		this.createNotes("BOOX", notes);
 	}
