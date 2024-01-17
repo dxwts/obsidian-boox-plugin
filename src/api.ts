@@ -5,13 +5,11 @@ import idb from "src/idb";
 export default class Api {
 	private static instance: Api;
 
-	BASE_URL = "";
 	api: any;
 	plugin: BooxPlugin;
 
 	constructor(plugin: BooxPlugin) {
 		this.plugin = plugin;
-		this.BASE_URL = plugin.settings.server + "/api/1";
 	}
 
 	static getInstance(plugin: BooxPlugin) {
@@ -19,6 +17,10 @@ export default class Api {
 			Api.instance = new Api(plugin);
 		}
 		return Api.instance;
+	}
+
+	getBaseUrl() {
+		return this.plugin.settings.server + "/api/1";
 	}
 
 	setInterceptor(params: any = {}) {
@@ -39,35 +41,35 @@ export default class Api {
 
 	async getToken(params?: any) {
 		params = this.setInterceptor(params);
-		params.url = `${this.BASE_URL}/users/getTokenByAccessToken`;
+		params.url = `${this.getBaseUrl()}/users/getTokenByAccessToken`;
 		const res = await requestUrl(params);
 		return res.json;
 	}
 
 	async getStsToken(params?: any) {
 		params = this.setInterceptor(params);
-		params.url = `${this.BASE_URL}/config/stss`;
+		params.url = `${this.getBaseUrl()}/config/stss`;
 		const res = await requestUrl(params);
 		return res.json;
 	}
 
 	async getBuckets(params?: any) {
 		params = this.setInterceptor(params);
-		params.url = `${this.BASE_URL}/config/buckets`;
+		params.url = `${this.getBaseUrl()}/config/buckets`;
 		const res = await requestUrl(params);
 		return res.json;
 	}
 
 	async getUserInfo(params?: any) {
 		params = this.setInterceptor(params);
-		params.url = `${this.BASE_URL}/users/me`;
+		params.url = `${this.getBaseUrl()}/users/me`;
 		const res = await requestUrl(params);
 		return res.json;
 	}
 
 	async getSyncToken(params?: any) {
 		params = this.setInterceptor(params);
-		params.url = `${this.BASE_URL}/users/syncToken`;
+		params.url = `${this.getBaseUrl()}/users/syncToken`;
 		const res = await requestUrl(params);
 		return res.json;
 	}
